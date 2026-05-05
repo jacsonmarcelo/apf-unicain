@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidFinancialEntry(data) {
+      return data.keys().hasAll(['date', 'description', 'tableId', 'categoryId', 'amount', 'userId', 'createdAt'])
+        && data.keys().size() == 7
+        && data.date is string && data.date.size() <= 100
+        && data.description is string && data.description.size() <= 200
+        && data.tableId is string && data.tableId.size() <= 50
+        && data.categoryId is string && data.categoryId.size() <= 100
+        && data.amount is number
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidBudgetLimit(data) {
+      return data.keys().hasAll(['categoryId', 'tableId', 'limitAmount', 'month', 'userId'])
+        && data.keys().size() == 5
+        && data.categoryId is string && data.categoryId.size() <= 100
+        && data.tableId is string && data.tableId.size() <= 50
+        && data.limitAmount is number
+        && data.month is string && data.month.matches('^\\d{4}-\\d{2}$')
+        && data.userId == request.auth.uid;
+    }
+
+    function isValidRecurringEntry(data) {
+      return data.keys().hasAll(['description', 'tableId', 'categoryId', 'amount', 'dayOfMonth', 'userId', 'active'])
+        && data.keys().size() == 7
+        && data.description is string && data.description.size() <= 200
+        && data.tableId is string && data.tableId.size() <= 50
+        && data.categoryId is string && data.categoryId.size() <= 100
+        && data.amount is number
+        && data.dayOfMonth is int && data.dayOfMonth >= 1 && data.dayOfMonth <= 31
+        && data.active is bool
+        && data.userId == request.auth.uid;
+    }
+
+    // --- Collections ---
+
+    match /entries/{entryId} {
+      allow create: if isSignedIn() && isValidFinancialEntry(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidFinancialEntry(incoming())
+                    && incoming().userId == existing().userId
+                    && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+      allow get: if isSignedIn() && isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /budgets/{budgetId} {
+      allow create: if isSignedIn() && isValidBudgetLimit(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidBudgetLimit(incoming())
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+      allow get: if isSignedIn() && isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /recurring/{recurringId} {
+      allow create: if isSignedIn() && isValidRecurringEntry(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidRecurringEntry(incoming())
+                    && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isOwner(existing().userId);
+      allow get: if isSignedIn() && isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Optional: Add test document for connection check
+    match /test/connection {
+      allow get: if isSignedIn();
+    }
+  }
+}

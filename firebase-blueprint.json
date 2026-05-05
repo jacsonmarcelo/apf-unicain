@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "FinancialEntry": {
+      "title": "Financial Entry",
+      "description": "Record of a single financial transaction (income or expense)",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "tableId": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "amount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["date", "description", "tableId", "categoryId", "amount", "userId"]
+    },
+    "BudgetLimit": {
+      "title": "Budget Limit",
+      "description": "Spending limit for a specific category and month",
+      "type": "object",
+      "properties": {
+        "categoryId": { "type": "string" },
+        "tableId": { "type": "string" },
+        "limitAmount": { "type": "number" },
+        "month": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["categoryId", "tableId", "limitAmount", "month", "userId"]
+    },
+    "RecurringEntry": {
+      "title": "Recurring Entry",
+      "description": "A template for entries that repeat every month",
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "tableId": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "amount": { "type": "number" },
+        "dayOfMonth": { "type": "number" },
+        "active": { "type": "boolean" },
+        "userId": { "type": "string" }
+      },
+      "required": ["description", "tableId", "categoryId", "amount", "dayOfMonth", "userId"]
+    }
+  },
+  "firestore": {
+    "/entries/{entryId}": {
+      "schema": "FinancialEntry",
+      "description": "All financial transactions"
+    },
+    "/budgets/{budgetId}": {
+      "schema": "BudgetLimit",
+      "description": "User defined spending limits"
+    },
+    "/recurring/{recurringId}": {
+      "schema": "RecurringEntry",
+      "description": "Configured recurring transactions"
+    }
+  }
+}
