@@ -11,15 +11,17 @@ import { MonthlySummaryTable } from './components/MonthlySummaryTable';
 import { AnnualSummary } from './components/AnnualSummary';
 import { BudgetManager } from './components/BudgetManager';
 import { RecurringManager } from './components/RecurringManager';
+import { AdminDashboard } from './components/AdminDashboard';
 import { useFinanceData } from './hooks/useFinanceData';
 import { exportToCSV } from './lib/export';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Loader2 } from 'lucide-react';
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Loader2, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, GoogleSignIn } from './lib/auth.tsx';
+import { Button } from './components/ui/button';
 
 export default function App() {
-  const { user, signOut } = useAuth();
+  const { user, profile, loadingProfile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -36,7 +38,7 @@ export default function App() {
 
   // Effect to generate recurring entries for the current month
   React.useEffect(() => {
-    if (user && recurring.length > 0) {
+    if (user && profile?.isApproved && recurring.length > 0) {
       const monthStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
       const existingInMonth = entries.filter(e => e.date.startsWith(monthStr) && e.description.includes('(Recorrente)'));
       
@@ -55,16 +57,35 @@ export default function App() {
         }
       });
     }
-  }, [user, currentMonth, recurring.length, entries.length]);
+  }, [user, profile?.isApproved, currentMonth, recurring.length, entries.length]);
 
   if (!user) {
     return <LandingPage onStart={() => document.getElementById('login-btn')?.scrollIntoView({ behavior: 'smooth' })} loginComponent={<GoogleSignIn />} />;
   }
 
-  if (loading) {
+  if (loadingProfile || (profile?.isApproved && loading)) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+      <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-accent-green animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile?.isApproved && !profile?.isAdmin) {
+    return (
+      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md bg-card-bg border border-card-border p-12 rounded-3xl shadow-2xl">
+          <ShieldAlert className="w-16 h-16 text-accent-amber mx-auto mb-6" />
+          <h2 className="text-2xl font-bold mb-4">Acesso em Análise</h2>
+          <p className="text-label leading-relaxed mb-8">
+            Seu cadastro foi recebido com sucesso. Por motivos de segurança e controle, 
+            novos acessos são liberados manualmente pelo administrador. 
+            Você receberá uma confirmação assim que sua conta for ativada.
+          </p>
+          <Button variant="outline" onClick={signOut} className="border-card-border">
+            Sair da Conta
+          </Button>
+        </div>
       </div>
     );
   }
@@ -109,6 +130,7 @@ export default function App() {
       setCurrentMonth={setCurrentMonth}
       onExport={handleExport}
       onLogout={signOut}
+      isAdmin={profile?.isAdmin}
     >
       {activeTab === 'dashboard' && (
         <div className="space-y-8">
@@ -168,6 +190,16 @@ export default function App() {
             onAdd={addRecurring} 
             onDelete={deleteRecurring} 
           />
+        </section>
+      )}
+
+      {activeTab === 'admin' && profile?.isAdmin && (
+        <section className="space-y-6">
+          <div className="flex flex-col gap-2 mb-8">
+            <h1 className="text-3xl font-bold">Painel Administrativo</h1>
+            <p className="text-slate-400">Gerencie o acesso de usuários e aprovações do sistema.</p>
+          </div>
+          <AdminDashboard />
         </section>
       )}
     </Shell>

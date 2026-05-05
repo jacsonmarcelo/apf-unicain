@@ -12,6 +12,17 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email_verified == true;
     }
     
+    function isApproved() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isApproved == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'jacsonmarcelo@gmail.com' || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+      );
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -63,34 +74,51 @@ service cloud.firestore {
         && data.userId == request.auth.uid;
     }
 
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'displayName', 'isApproved', 'isAdmin', 'createdAt'])
+        && data.keys().size() == 5
+        && data.email is string
+        && data.isApproved is bool
+        && data.isAdmin is bool;
+    }
+
     // --- Collections ---
 
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) 
+                    && incoming().isApproved == false 
+                    && (incoming().isAdmin == false || request.auth.token.email == 'jacsonmarcelo@gmail.com');
+      allow update: if isAdmin();
+    }
+
     match /entries/{entryId} {
-      allow create: if isSignedIn() && isValidFinancialEntry(incoming());
-      allow update: if isSignedIn() && isOwner(existing().userId) && isValidFinancialEntry(incoming())
+      allow create: if isApproved() && isValidFinancialEntry(incoming());
+      allow update: if isApproved() && isOwner(existing().userId) && isValidFinancialEntry(incoming())
                     && incoming().userId == existing().userId
                     && incoming().createdAt == existing().createdAt;
-      allow delete: if isSignedIn() && isOwner(existing().userId);
-      allow get: if isSignedIn() && isOwner(existing().userId);
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isApproved() && isOwner(existing().userId);
+      allow get: if isApproved() && isOwner(existing().userId);
+      allow list: if isApproved() && resource.data.userId == request.auth.uid;
     }
 
     match /budgets/{budgetId} {
-      allow create: if isSignedIn() && isValidBudgetLimit(incoming());
-      allow update: if isSignedIn() && isOwner(existing().userId) && isValidBudgetLimit(incoming())
+      allow create: if isApproved() && isValidBudgetLimit(incoming());
+      allow update: if isApproved() && isOwner(existing().userId) && isValidBudgetLimit(incoming())
                     && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isOwner(existing().userId);
-      allow get: if isSignedIn() && isOwner(existing().userId);
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isApproved() && isOwner(existing().userId);
+      allow get: if isApproved() && isOwner(existing().userId);
+      allow list: if isApproved() && resource.data.userId == request.auth.uid;
     }
 
     match /recurring/{recurringId} {
-      allow create: if isSignedIn() && isValidRecurringEntry(incoming());
-      allow update: if isSignedIn() && isOwner(existing().userId) && isValidRecurringEntry(incoming())
+      allow create: if isApproved() && isValidRecurringEntry(incoming());
+      allow update: if isApproved() && isOwner(existing().userId) && isValidRecurringEntry(incoming())
                     && incoming().userId == existing().userId;
-      allow delete: if isSignedIn() && isOwner(existing().userId);
-      allow get: if isSignedIn() && isOwner(existing().userId);
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isApproved() && isOwner(existing().userId);
+      allow get: if isApproved() && isOwner(existing().userId);
+      allow list: if isApproved() && resource.data.userId == request.auth.uid;
     }
 
     // Optional: Add test document for connection check

@@ -42,9 +42,26 @@
         "userId": { "type": "string" }
       },
       "required": ["description", "tableId", "categoryId", "amount", "dayOfMonth", "userId"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "System user with access control",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "isApproved": { "type": "boolean" },
+        "isAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "isApproved"]
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Registered system users"
+    },
     "/entries/{entryId}": {
       "schema": "FinancialEntry",
       "description": "All financial transactions"

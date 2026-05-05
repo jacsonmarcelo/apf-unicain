@@ -9,7 +9,8 @@ import {
   ChevronLeft, 
   ChevronRight,
   LogOut,
-  Wallet
+  Wallet,
+  ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ interface ShellProps {
   setCurrentMonth: (date: Date) => void;
   onExport: () => void;
   onLogout: () => void;
+  isAdmin?: boolean;
 }
 
 export function Shell({ 
@@ -31,7 +33,8 @@ export function Shell({
   currentMonth, 
   setCurrentMonth, 
   onExport,
-  onLogout
+  onLogout,
+  isAdmin
 }: ShellProps) {
   
   const nextMonth = () => {
@@ -50,6 +53,10 @@ export function Shell({
     { id: 'budgets', label: 'Metas', icon: <Settings2 className="w-4 h-4" /> },
     { id: 'recurring', label: 'Recorrentes', icon: <Repeat className="w-4 h-4" /> },
   ];
+
+  if (isAdmin) {
+    navItems.push({ id: 'admin', label: 'Admin', icon: <ShieldAlert className="w-4 h-4" /> });
+  }
 
   return (
     <div className="min-h-screen bg-brand-bg text-slate-50 font-sans">
