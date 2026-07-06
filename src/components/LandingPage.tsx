@@ -1,22 +1,21 @@
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
-import { Target, PieChart, ShieldCheck, Zap, Clock, Wallet } from 'lucide-react';
+import { Target, PieChart, Clock } from 'lucide-react';
+import { GoogleSignIn, EmailSignIn } from '@/lib/auth';
 
 interface LandingPageProps {
   onStart: () => void;
-  loginComponent?: React.ReactNode;
 }
 
-export function LandingPage({ onStart, loginComponent }: LandingPageProps) {
+export function LandingPage() {
   return (
     <div className="min-h-screen bg-brand-bg text-slate-50 font-sans selection:bg-accent-green/30">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden text-center lg:text-left">
-        {/* Abstract Background Decor */}
+      <section className="relative pt-12 pb-20 px-6 overflow-hidden md:pt-24 lg:pt-32">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.08),transparent_50%)] pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="max-w-3xl">
+        <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="text-center lg:text-left">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -39,29 +38,56 @@ export function LandingPage({ onStart, loginComponent }: LandingPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed mb-12"
+              className="text-slate-400 text-lg md:text-xl max-w-xl leading-relaxed mb-12 mx-auto lg:mx-0"
             >
               A inteligência estratégica para sua vida financeira. Planeje, acompanhe e otimize seu patrimônio com elegância e precisão técnica.
             </motion.p>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center gap-4"
+              className="hidden lg:flex flex-col sm:flex-row items-center gap-4"
             >
-              <Button size="lg" className="bg-accent-green hover:opacity-90 text-slate-900 font-bold px-10 h-14 rounded-xl transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.15)] w-full sm:w-auto" onClick={() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' })}>
-                Get Started Free
-              </Button>
-              <Button variant="outline" size="lg" className="border-card-border hover:bg-slate-900 text-slate-300 px-10 h-14 rounded-xl w-full sm:w-auto">
-                Explore Demo
+              <Button size="lg" className="bg-accent-green hover:opacity-90 text-slate-900 font-bold px-10 h-14 rounded-xl transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.15)]" onClick={() => document.getElementById('login-card')?.scrollIntoView({ behavior: 'smooth' })}>
+                Entrar Agora
               </Button>
             </motion.div>
           </div>
+
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="w-full max-w-md mx-auto bg-card-bg border border-card-border p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative"
+            id="login-card"
+          >
+            <div className="absolute -top-6 -right-6 w-32 h-32 bg-accent-green/10 blur-3xl rounded-full pointer-events-none" />
+            
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold mb-2">Seja bem-vindo</h2>
+              <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Escolha como deseja acessar</p>
+            </div>
+
+            <div className="space-y-8">
+              <EmailSignIn />
+              
+              <div className="relative flex items-center gap-4">
+                <div className="h-[1px] flex-1 bg-card-border" />
+                <span className="text-[10px] font-bold text-label uppercase tracking-widest">Ou continue com</span>
+                <div className="h-[1px] flex-1 bg-card-border" />
+              </div>
+
+              <GoogleSignIn />
+            </div>
+
+            <p className="mt-8 text-center text-[10px] text-slate-500 font-medium">
+              Ao continuar, você concorda com nossos termos de uso e política de privacidade.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Grid */}
       <section className="py-24 px-6 relative">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <FeatureCard 
@@ -79,29 +105,6 @@ export function LandingPage({ onStart, loginComponent }: LandingPageProps) {
             title="Fiscal Automation"
             description="Sincronize despesas recorrentes e projeções anuais de forma totalmente autônoma."
           />
-        </div>
-      </section>
-
-      {/* Hero Section Call to Action */}
-      <section className="py-32 px-6" id="login-section">
-        <div className="max-w-5xl mx-auto bg-card-bg border border-card-border p-12 md:p-24 rounded-[3rem] shadow-2xl relative overflow-hidden text-center">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(16,185,129,0.05),transparent_70%)]" />
-          
-          <h2 className="text-4xl md:text-6xl font-bold mb-8 relative z-10 leading-tight tracking-tight">Pronto para transformar <br/>seu futuro?</h2>
-          <p className="text-slate-400 mb-12 italic text-lg relative z-10 max-w-2xl mx-auto leading-relaxed font-light">
-            "A melhor maneira de prever o futuro é construí-lo. FinanzaPulse é o cockpit estratégico que você precisa."
-          </p>
-          <div id="login-btn" className="relative z-10 flex justify-center">
-            {loginComponent ? (
-              <div className="scale-110">
-                {loginComponent}
-              </div>
-            ) : (
-              <Button size="lg" className="bg-accent-green hover:opacity-90 text-slate-900 font-bold px-12 h-16 rounded-2xl text-lg" onClick={onStart}>
-                Entrar com Google
-              </Button>
-            )}
-          </div>
         </div>
       </section>
 

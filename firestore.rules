@@ -13,7 +13,7 @@ service cloud.firestore {
     }
     
     function isApproved() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isApproved == true;
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSubscribed == true;
     }
 
     function isAdmin() {
@@ -75,10 +75,10 @@ service cloud.firestore {
     }
 
     function isValidUser(data) {
-      return data.keys().hasAll(['email', 'displayName', 'isApproved', 'isAdmin', 'createdAt'])
-        && data.keys().size() == 5
+      return data.keys().hasAll(['email', 'displayName', 'isSubscribed', 'isAdmin', 'createdAt'])
+        && data.keys().size() >= 5
         && data.email is string
-        && data.isApproved is bool
+        && data.isSubscribed is bool
         && data.isAdmin is bool;
     }
 
@@ -87,9 +87,9 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(userId) 
-                    && incoming().isApproved == false 
-                    && (incoming().isAdmin == false || request.auth.token.email == 'jacsonmarcelo@gmail.com');
+      allow create: if (isOwner(userId) || isAdmin())
+                    && (isAdmin() || incoming().isSubscribed == false)
+                    && (isAdmin() || incoming().isAdmin == false || request.auth.token.email == 'jacsonmarcelo@gmail.com');
       allow update: if isAdmin();
     }
 
@@ -119,6 +119,10 @@ service cloud.firestore {
       allow delete: if isApproved() && isOwner(existing().userId);
       allow get: if isApproved() && isOwner(existing().userId);
       allow list: if isApproved() && resource.data.userId == request.auth.uid;
+    }
+
+    match /auth_otps/{email} {
+      allow read, write: if false; // Server-side only
     }
 
     // Optional: Add test document for connection check

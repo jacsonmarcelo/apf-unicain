@@ -8,9 +8,9 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth();
 
 /**
- * Validates connection to Firestore on initialization.
+ * Validates connection to Firestore.
  */
-async function testConnection() {
+export async function testFirestoreConnection() {
   try {
     await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
@@ -19,5 +19,3 @@ async function testConnection() {
     }
   }
 }
-
-testConnection();

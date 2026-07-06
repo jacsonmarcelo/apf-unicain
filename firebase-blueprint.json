@@ -45,16 +45,17 @@
     },
     "User": {
       "title": "User Profile",
-      "description": "System user with access control",
+      "description": "System user with access control and subscription status",
       "type": "object",
       "properties": {
         "email": { "type": "string" },
         "displayName": { "type": "string" },
-        "isApproved": { "type": "boolean" },
+        "isApproved": { "type": "boolean", "description": "Legacy approval flag" },
+        "isSubscribed": { "type": "boolean", "description": "Controls access to platform features" },
         "isAdmin": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["email", "isApproved"]
+      "required": ["email", "isSubscribed"]
     }
   },
   "firestore": {

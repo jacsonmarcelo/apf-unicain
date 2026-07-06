@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { LandingPage } from './components/LandingPage';
 import { Shell } from './components/Shell';
 import { EntryForm } from './components/EntryForm';
@@ -17,8 +18,9 @@ import { exportToCSV } from './lib/export';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { DollarSign, ArrowUpCircle, ArrowDownCircle, PieChart, Loader2, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth, GoogleSignIn } from './lib/auth.tsx';
+import { useAuth, GoogleSignIn } from './lib/auth';
 import { Button } from './components/ui/button';
+import { testFirestoreConnection } from './lib/firebase';
 
 export default function App() {
   const { user, profile, loadingProfile, signOut } = useAuth();
@@ -36,9 +38,14 @@ export default function App() {
     deleteRecurring 
   } = useFinanceData();
 
+  // Test Firestore connection on mount
+  useEffect(() => {
+    testFirestoreConnection();
+  }, []);
+
   // Effect to generate recurring entries for the current month
-  React.useEffect(() => {
-    if (user && profile?.isApproved && recurring.length > 0) {
+  useEffect(() => {
+    if (user && profile?.isSubscribed && recurring.length > 0) {
       const monthStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
       const existingInMonth = entries.filter(e => e.date.startsWith(monthStr) && e.description.includes('(Recorrente)'));
       
@@ -57,13 +64,13 @@ export default function App() {
         }
       });
     }
-  }, [user, profile?.isApproved, currentMonth, recurring.length, entries.length]);
+  }, [user, profile?.isSubscribed, currentMonth, recurring.length, entries.length]);
 
   if (!user) {
-    return <LandingPage onStart={() => document.getElementById('login-btn')?.scrollIntoView({ behavior: 'smooth' })} loginComponent={<GoogleSignIn />} />;
+    return <LandingPage />;
   }
 
-  if (loadingProfile || (profile?.isApproved && loading)) {
+  if (loadingProfile || (profile?.isSubscribed && loading)) {
     return (
       <div className="min-h-screen bg-brand-bg flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-accent-green animate-spin" />
@@ -71,21 +78,34 @@ export default function App() {
     );
   }
 
-  if (!profile?.isApproved && !profile?.isAdmin) {
+  if (!profile?.isSubscribed && !profile?.isAdmin) {
     return (
       <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-card-bg border border-card-border p-12 rounded-3xl shadow-2xl">
-          <ShieldAlert className="w-16 h-16 text-accent-amber mx-auto mb-6" />
-          <h2 className="text-2xl font-bold mb-4">Acesso em Análise</h2>
-          <p className="text-label leading-relaxed mb-8">
-            Seu cadastro foi recebido com sucesso. Por motivos de segurança e controle, 
-            novos acessos são liberados manualmente pelo administrador. 
-            Você receberá uma confirmação assim que sua conta for ativada.
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md bg-card-bg border border-card-border p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-2 bg-accent-amber" />
+          <div className="bg-accent-amber/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8">
+            <ShieldAlert className="w-10 h-10 text-accent-amber" />
+          </div>
+          <h2 className="text-3xl font-bold mb-4 tracking-tight">Parece que você ainda não está inscrito!</h2>
+          <p className="text-slate-400 leading-relaxed mb-10">
+            Sua conta foi criada com sucesso, mas você ainda não possui uma assinatura ativa para acessar as ferramentas estratégicas.
           </p>
-          <Button variant="outline" onClick={signOut} className="border-card-border">
-            Sair da Conta
-          </Button>
-        </div>
+          <div className="space-y-4">
+            <Button 
+              className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold h-16 rounded-2xl text-lg shadow-xl"
+              onClick={() => window.open('https://wa.me/5551989232128?text=Olá,%20gostaria%20de%20ativar%20minha%20inscrição%20no%20FinanzaPulse', '_blank')}
+            >
+              Falar com Suporte via WhatsApp
+            </Button>
+            <Button variant="ghost" onClick={signOut} className="w-full text-slate-500 hover:text-slate-300">
+              Sair da Conta
+            </Button>
+          </div>
+        </motion.div>
       </div>
     );
   }
