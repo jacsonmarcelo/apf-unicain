@@ -36,7 +36,7 @@ export default function App() {
     addBudget, 
     addRecurring, 
     deleteRecurring 
-  } = useFinanceData();
+  } = useFinanceData(user);
 
   // Test Firestore connection on mount
   useEffect(() => {

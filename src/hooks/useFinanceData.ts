@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   orderBy
 } from 'firebase/firestore';
+import { User as FirebaseUser } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
 import { FinancialEntry, BudgetLimit, RecurringEntry } from '../types/finance';
 
@@ -50,15 +51,17 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-export function useFinanceData() {
+export function useFinanceData(currentUser: FirebaseUser | null) {
   const [entries, setEntries] = useState<FinancialEntry[]>([]);
   const [budgets, setBudgets] = useState<BudgetLimit[]>([]);
   const [recurring, setRecurring] = useState<RecurringEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) {
+    if (!currentUser) {
+      setEntries([]);
+      setBudgets([]);
+      setRecurring([]);
       setLoading(false);
       return;
     }
@@ -68,7 +71,7 @@ export function useFinanceData() {
     // Entries Listener
     const entriesQuery = query(
       collection(db, 'entries'), 
-      where('userId', '==', user.uid),
+      where('userId', '==', currentUser.uid),
       orderBy('date', 'desc')
     );
     const unsubEntries = onSnapshot(entriesQuery, (snapshot) => {
@@ -80,7 +83,7 @@ export function useFinanceData() {
     });
 
     // Budgets Listener
-    const budgetsQuery = query(collection(db, 'budgets'), where('userId', '==', user.uid));
+    const budgetsQuery = query(collection(db, 'budgets'), where('userId', '==', currentUser.uid));
     const unsubBudgets = onSnapshot(budgetsQuery, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BudgetLimit));
       setBudgets(data);
@@ -89,7 +92,7 @@ export function useFinanceData() {
     });
 
     // Recurring Listener
-    const recurringQuery = query(collection(db, 'recurring'), where('userId', '==', user.uid));
+    const recurringQuery = query(collection(db, 'recurring'), where('userId', '==', currentUser.uid));
     const unsubRecurring = onSnapshot(recurringQuery, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RecurringEntry));
       setRecurring(data);
@@ -102,16 +105,15 @@ export function useFinanceData() {
       unsubBudgets();
       unsubRecurring();
     };
-  }, [auth.currentUser]);
+  }, [currentUser]);
 
   const addEntry = async (entry: Omit<FinancialEntry, 'id' | 'userId'>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!currentUser) return;
 
     try {
       await addDoc(collection(db, 'entries'), {
         ...entry,
-        userId: user.uid,
+        userId: currentUser.uid,
         createdAt: serverTimestamp()
       });
     } catch (error) {
@@ -120,13 +122,12 @@ export function useFinanceData() {
   };
 
   const addBudget = async (budget: Omit<BudgetLimit, 'id' | 'userId'>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!currentUser) return;
 
     try {
       await addDoc(collection(db, 'budgets'), {
         ...budget,
-        userId: user.uid
+        userId: currentUser.uid
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'budgets');
@@ -134,13 +135,12 @@ export function useFinanceData() {
   };
 
   const addRecurring = async (rec: Omit<RecurringEntry, 'id' | 'userId' | 'active'>) => {
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!currentUser) return;
 
     try {
       await addDoc(collection(db, 'recurring'), {
         ...rec,
-        userId: user.uid,
+        userId: currentUser.uid,
         active: true
       });
     } catch (error) {

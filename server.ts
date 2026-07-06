@@ -112,11 +112,17 @@ async function startServer() {
       let userRecord;
       try {
         userRecord = await getAuth().getUserByEmail(email);
+        if (!userRecord.emailVerified) {
+          userRecord = await getAuth().updateUser(userRecord.uid, {
+            emailVerified: true
+          });
+        }
       } catch (authError: any) {
         if (authError.code === "auth/user-not-found") {
           userRecord = await getAuth().createUser({
             email: email,
             displayName: email.split("@")[0],
+            emailVerified: true
           });
         } else {
           throw authError;
