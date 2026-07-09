@@ -79,12 +79,15 @@ async function startServer() {
         }
         
         console.log("Email sent successfully:", data);
+        res.json({ success: true, message: "OTP sent successfully" });
       } else {
         console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
-        return res.status(500).json({ error: "RESEND_API_KEY is not configured on the server." });
+        return res.json({ 
+          success: true, 
+          message: "OTP generated in DEV MODE.",
+          warning: "RESEND_API_KEY is not configured on the server."
+        });
       }
-
-      res.json({ success: true, message: "OTP sent successfully" });
     } catch (error: any) {
       console.error("Error sending OTP:", error);
       res.status(500).json({ error: "Failed to send OTP", details: error.message });
@@ -97,16 +100,25 @@ async function startServer() {
     if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
 
     try {
-      const otpDoc = await db.collection("auth_otps").doc(email.toLowerCase()).get();
-      if (!otpDoc.exists) return res.status(401).json({ error: "OTP not found or expired" });
+      let isValid = false;
 
-      const data = otpDoc.data()!;
-      if (data.otp !== otp || Date.now() > data.expiresAt) {
-        return res.status(401).json({ error: "Invalid or expired OTP" });
+      // Allow 123456 as test bypass if RESEND_API_KEY is missing
+      if (!process.env.RESEND_API_KEY && otp === "123456") {
+        isValid = true;
+      } else {
+        const otpDoc = await db.collection("auth_otps").doc(email.toLowerCase()).get();
+        if (otpDoc.exists) {
+          const data = otpDoc.data()!;
+          if (data.otp === otp && Date.now() <= data.expiresAt) {
+            isValid = true;
+            await db.collection("auth_otps").doc(email.toLowerCase()).delete();
+          }
+        }
       }
 
-      // Validated! Clear OTP
-      await db.collection("auth_otps").doc(email.toLowerCase()).delete();
+      if (!isValid) {
+        return res.status(401).json({ error: "Invalid or expired OTP" });
+      }
 
       // Find or create user
       let userRecord;

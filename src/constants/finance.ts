@@ -6,7 +6,7 @@ export const FINANCIAL_TABLES: Record<string, FinancialTable> = {
   INVESTIMENTOS: { id: 'INVESTIMENTOS', name: 'Investimentos', type: TransactionType.INVESTMENT },
   DESPESAS_ESSENCIAIS: { id: 'DESPESAS_ESSENCIAIS', name: 'Despesas Essenciais', type: TransactionType.EXPENSE },
   DESPESAS_VIVO_SEM: { id: 'DESPESAS_VIVO_SEM', name: 'Despesas Vivo Sem', type: TransactionType.EXPENSE },
-  PARCELAS_E_EMPRESTIMOS: { id: 'PARCELAS_E_EMPRESTIMOS', name: 'Parcelas e Empréstimos', type: TransactionType.DEBT },
+  PARCELAS_E_EMPRESTIMOS: { id: 'PARCELAS_E_EMPRESTIMOS', name: 'Parcelas/Emprestimos e Extras', type: TransactionType.DEBT },
 };
 
 export const CATEGORIES_BY_TABLE: Record<string, string[]> = {
@@ -21,7 +21,7 @@ export const CATEGORIES_BY_TABLE: Record<string, string[]> = {
   ],
   DESPESAS_ESSENCIAIS: [
     'Mercado', 'Farmácia', 'Consulta/Exames', 'Energia Elétrica',
-    'Estudo para Crescimento Profissional', 'Condominio', 'IPTU',
+    'Estudo para Crescimento Profissional', 'Aluguel/Financ Resid', 'Condominio', 'IPTU',
     'Estetica/Cabeleireira', 'Banda Larga Wifi', 'Fones/Comunicação/4G',
     'Uniforme', 'Colégio', 'Bazar e utilidades', 'Roupas',
     'Transp Publico/App', 'Manutenção Casa', 'Saneamento/Agua', 'Juros/Multa'
@@ -35,6 +35,6 @@ export const CATEGORIES_BY_TABLE: Record<string, string[]> = {
     'Bem Estar e Lazer', 'Balada, Choperia, Eventos, etc'
   ],
   PARCELAS_E_EMPRESTIMOS: [
-    'Financiamento', 'Ações', 'Dividas'
+    'Financiamento', 'Ações', 'Dividas', 'Negócios', 'Ideias'
   ]
 };

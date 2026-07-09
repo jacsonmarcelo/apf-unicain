@@ -59,6 +59,7 @@ export function EmailSignIn() {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +67,7 @@ export function EmailSignIn() {
 
     setLoading(true);
     setError('');
+    setWarning('');
     try {
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
@@ -75,6 +77,9 @@ export function EmailSignIn() {
       
       const data = await response.json();
       if (response.ok) {
+        if (data.warning) {
+          setWarning(data.warning);
+        }
         setStep('otp');
       } else {
         setError(data.error || 'Erro ao enviar código');
@@ -134,6 +139,14 @@ export function EmailSignIn() {
             <strong className="text-slate-200">{email}</strong>
           </p>
         </div>
+        {warning && (
+          <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl p-3 text-center mb-2">
+            <p className="text-amber-400 text-xs font-semibold leading-relaxed">
+              Modo de Teste Ativo:<br/>
+              A chave do servidor não foi configurada, use o código <span className="underline font-bold text-amber-300">123456</span> para entrar!
+            </p>
+          </div>
+        )}
         <div className="relative">
           <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
           <Input 
