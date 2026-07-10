@@ -1,13 +1,13 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
-import { Target, PieChart, Clock } from 'lucide-react';
+import { Target, PieChart, Clock, ShieldCheck, Lock, Database, Award } from 'lucide-react';
 import { GoogleSignIn, EmailSignIn } from '@/lib/auth';
-
-interface LandingPageProps {
-  onStart: () => void;
-}
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 export function LandingPage() {
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-brand-bg text-slate-50 font-sans selection:bg-accent-green/30">
       {/* Hero Section */}
@@ -79,10 +79,21 @@ export function LandingPage() {
               </div>
 
               <GoogleSignIn />
+
+              <div className="flex items-center justify-center gap-2 pt-2 text-[10px] text-slate-400 font-medium bg-slate-900/40 py-3 px-4 rounded-xl border border-card-border/50">
+                <Lock className="w-3.5 h-3.5 text-accent-green shrink-0" />
+                <span>Ambiente criptografado SSL e LGPD ativa</span>
+              </div>
             </div>
 
-            <p className="mt-8 text-center text-[10px] text-slate-500 font-medium">
-              Ao continuar, você concorda com nossos termos de uso e política de privacidade.
+            <p className="mt-8 text-center text-[10px] text-slate-500 font-medium leading-relaxed">
+              Ao continuar, você concorda com nossos termos de uso e com nossa{' '}
+              <button 
+                onClick={() => setIsPrivacyOpen(true)} 
+                className="text-accent-green hover:underline focus:outline-none font-bold"
+              >
+                política de privacidade (LGPD)
+              </button>.
             </p>
           </motion.div>
         </div>
@@ -108,9 +119,58 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="py-12 px-6 text-center text-label text-[11px] font-bold uppercase tracking-[0.2em] border-t border-card-border/50">
-        © 2026 FinanzaPulse. Strategic Financial Planning.
+      <footer className="py-16 px-6 border-t border-card-border/50 bg-slate-950/20">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-8">
+          {/* Selos de Autenticidade */}
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+            <div className="flex items-center gap-2.5 bg-slate-900/60 border border-card-border/50 px-4 py-2.5 rounded-xl">
+              <ShieldCheck className="w-5 h-5 text-accent-green shrink-0" />
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-slate-200 uppercase tracking-wider leading-none mb-0.5">Conformidade LGPD</p>
+                <p className="text-[9px] text-slate-500 font-semibold leading-none">Dados 100% Protegidos</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 bg-slate-900/60 border border-card-border/50 px-4 py-2.5 rounded-xl">
+              <Lock className="w-5 h-5 text-accent-green shrink-0" />
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-slate-200 uppercase tracking-wider leading-none mb-0.5">SSL Criptografado</p>
+                <p className="text-[9px] text-slate-500 font-semibold leading-none">Conexão 100% Segura</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 bg-slate-900/60 border border-card-border/50 px-4 py-2.5 rounded-xl">
+              <Database className="w-5 h-5 text-accent-green shrink-0" />
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-slate-200 uppercase tracking-wider leading-none mb-0.5">Firebase Cloud</p>
+                <p className="text-[9px] text-slate-500 font-semibold leading-none">Banco Google Firestore</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 bg-slate-900/60 border border-card-border/50 px-4 py-2.5 rounded-xl">
+              <Award className="w-5 h-5 text-accent-green shrink-0" />
+              <div className="text-left">
+                <p className="text-[10px] font-bold text-slate-200 uppercase tracking-wider leading-none mb-0.5">Google Trust</p>
+                <p className="text-[9px] text-slate-500 font-semibold leading-none">Certificado de Autoridade</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-label text-[11px] font-bold uppercase tracking-[0.2em] text-center">
+              © 2026 FinanzaPulse. Strategic Financial Planning.
+            </p>
+            <button 
+              onClick={() => setIsPrivacyOpen(true)}
+              className="text-[10px] text-accent-green hover:underline uppercase font-bold tracking-wider"
+            >
+              Consultar Política de Segurança & LGPD
+            </button>
+          </div>
+        </div>
       </footer>
+
+      <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </div>
   );
 }
