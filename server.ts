@@ -9,9 +9,6 @@ import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import fs from "fs";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Initialize Firebase Admin
 const configPath = path.join(process.cwd(), "firebase-applet-config.json");
 const firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
