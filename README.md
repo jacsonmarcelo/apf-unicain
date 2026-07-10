@@ -64,6 +64,39 @@ O banco de dados e controle de autenticação do projeto rodam no Firebase:
   firebase deploy --only firestore:rules
   ```
 
+## 🌐 Configuração de Domínio Personalizado (Cloudflare + Cloud Run)
+
+Para colocar o aplicativo para rodar em seu próprio domínio ou subdomínio (ex: `finanza.unicain.com.br`) usando o **Cloudflare** como provedor de DNS, siga o passo a passo abaixo para evitar erros de SSL.
+
+### 1. Mapeamento no Google Cloud Run
+1. No menu lateral do console do Cloud Run, selecione **Mapeamentos de domínio** (Domain mappings).
+2. Clique em **Adicionar mapeamento** (Add mapping).
+3. Selecione o serviço `finanza-financial-planning-analysis`.
+4. Digite o seu subdomínio (ex: `finanza.unicain.com.br`) e clique em continuar.
+5. O console exibirá as instruções de DNS, indicando que você precisa criar um registro do tipo **CNAME** apontando para `ghs.googlehosted.com`.
+
+### 2. Configuração no Cloudflare (Evitando o Erro 525 SSL)
+O erro **525 SSL Handshake Failed** ocorre porque o Cloudflare tenta estabelecer uma conexão segura com o Cloud Run, mas o Cloud Run ainda não conseguiu emitir o certificado SSL para o seu domínio (pois ele está aguardando a validação do DNS).
+
+Para resolver isso de forma definitiva:
+1. No painel do Cloudflare, vá em **DNS** -> **Records**.
+2. Adicione ou edite o registro **CNAME** do seu subdomínio:
+   * **Type**: `CNAME`
+   * **Name**: `finanza` (ou o seu subdomínio desejado)
+   * **Target**: `ghs.googlehosted.com`
+   * **Proxy status**: Mude temporariamente de *Proxied* (Nuvem Laranja) para **DNS Only (Nuvem Cinza)**.
+3. **Por que isso é necessário?** Com a nuvem cinza (DNS Only), os servidores do Google conseguem se conectar diretamente ao seu domínio para validar a propriedade com a autoridade certificadora (Let's Encrypt) e emitir o certificado SSL automaticamente.
+4. No console do Cloud Run, o status do mapeamento de domínio mostrará um círculo azul girando (em provisionamento). Isso pode levar de **15 minutos a 2 horas** para propagar e validar. 
+5. Assim que o círculo azul se transformar em um **check verde (Ativo)**, o certificado SSL de origem foi gerado pelo Google com sucesso!
+
+### 3. Reativando a Nuvem Laranja (Proxy) e Ajustando o SSL/TLS
+Depois que o domínio estiver ativo com o check verde no Cloud Run, você pode reativar a segurança do Cloudflare:
+1. No painel do Cloudflare, volte ao registro DNS do CNAME e alterne de **DNS Only (Nuvem Cinza)** de volta para **Proxied (Nuvem Laranja)**.
+2. **IMPORTANTE (Modo de Criptografia SSL)**:
+   * No menu esquerdo do Cloudflare, acesse **SSL/TLS**.
+   * Altere o modo de criptografia para **Full** ou **Full (Strict)**.
+   * **NÃO use o modo "Flexible"**. O modo *Flexible* tenta falar com o Cloud Run via HTTP comum (porta 80), o que causa loops infinitos de redirecionamento ou falhas de segurança. O Cloud Run exige conexão criptografada (HTTPS/443), portanto o modo **Full / Completo** é obrigatório.
+
 ---
 
 ## 🛠️ Como Executar o Projeto Localmente
