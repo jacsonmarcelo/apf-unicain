@@ -2,5 +2,7 @@
   "name": "Finanza: Financial Planning & Analysis",
   "description": "A comprehensive financial management tool for daily entry, monthly planning, and annual analysis with budget tracking and recurring expenses.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
