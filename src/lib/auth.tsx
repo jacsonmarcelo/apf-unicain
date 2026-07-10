@@ -140,10 +140,9 @@ export function EmailSignIn() {
           </p>
         </div>
         {warning && (
-          <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl p-3 text-center mb-2">
+          <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl p-3 text-center mb-2 whitespace-pre-line">
             <p className="text-amber-400 text-xs font-semibold leading-relaxed">
-              Modo de Teste Ativo:<br/>
-              A chave do servidor não foi configurada, use o código <span className="underline font-bold text-amber-300">123456</span> para entrar!
+              {warning}
             </p>
           </div>
         )}
