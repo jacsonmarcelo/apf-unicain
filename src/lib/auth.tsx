@@ -10,7 +10,7 @@ import {
   signInWithCustomToken
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { LogIn, Mail, Send, Loader2, KeyRound, ArrowRight } from 'lucide-react';
+import { LogIn, Mail, Send, Loader2, KeyRound, ArrowRight, ExternalLink } from 'lucide-react';
 
 export interface UserProfile {
   email: string;
@@ -22,7 +22,16 @@ export interface UserProfile {
 }
 
 export function GoogleSignIn() {
+  const [error, setError] = useState<string | null>(null);
+  const [isIframe, setIsIframe] = useState(false);
+
+  useEffect(() => {
+    // Detect if inside iframe
+    setIsIframe(window.self !== window.top);
+  }, []);
+
   const handleSignIn = async () => {
+    setError(null);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -40,16 +49,47 @@ export function GoogleSignIn() {
           createdAt: serverTimestamp()
         });
       }
-    } catch (error) {
-      console.error("Error signing in: ", error);
+    } catch (err: any) {
+      console.error("Error signing in: ", err);
+      if (err.code === 'auth/popup-blocked') {
+        setError('O popup de login foi bloqueado pelo seu navegador. Por favor, libere popups ou abra o app em uma nova aba.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('O login com Google não está habilitado no Console do Firebase.');
+      } else {
+        setError('Não foi possível conectar com o Google dentro deste painel (iframe). Por favor, use o login por e-mail ou abra em uma nova aba.');
+      }
     }
   };
 
   return (
-    <Button onClick={handleSignIn} size="lg" className="bg-white hover:bg-slate-50 text-slate-900 font-bold px-12 h-16 rounded-2xl text-lg shadow-xl flex items-center gap-3 w-full border-2 border-slate-100 transition-all active:scale-95">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-6 h-6" />
-      Entrar com Google
-    </Button>
+    <div className="space-y-4 w-full">
+      <Button onClick={handleSignIn} size="lg" className="bg-white hover:bg-slate-50 text-slate-900 font-bold px-12 h-16 rounded-2xl text-lg shadow-xl flex items-center justify-center gap-3 w-full border-2 border-slate-100 transition-all active:scale-95">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-6 h-6 shrink-0" />
+        Entrar com Google
+      </Button>
+
+      {error && (
+        <div className="bg-amber-950/40 border border-amber-500/30 rounded-2xl p-4 text-center text-xs text-amber-400 font-medium leading-relaxed space-y-2 animate-in fade-in duration-200">
+          <p>{error}</p>
+          <div className="pt-1 flex justify-center">
+            <a 
+              href={window.location.href} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-accent-green hover:underline inline-flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider"
+            >
+              Abrir App em Nova Aba <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {isIframe && !error && (
+        <p className="text-[10px] text-slate-500 text-center leading-relaxed px-2">
+          💡 <strong className="text-slate-400">Dica do Iframe:</strong> Navegadores bloqueiam popups do Google dentro de painéis integrados. Para entrar com Google, <a href={window.location.href} target="_blank" rel="noopener noreferrer" className="text-accent-green hover:underline font-bold">abra em uma nova aba <ExternalLink className="inline-block w-2.5 h-2.5 ml-0.5" /></a> ou use o login por e-mail acima.
+        </p>
+      )}
+    </div>
   );
 }
 
