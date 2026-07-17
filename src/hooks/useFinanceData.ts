@@ -7,6 +7,7 @@ import {
   addDoc, 
   deleteDoc, 
   doc, 
+  updateDoc,
   serverTimestamp,
   orderBy
 } from 'firebase/firestore';
@@ -156,6 +157,22 @@ export function useFinanceData(currentUser: FirebaseUser | null) {
     }
   };
 
+  const deleteEntry = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'entries', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `entries/${id}`);
+    }
+  };
+
+  const updateEntry = async (id: string, entry: Partial<Omit<FinancialEntry, 'id' | 'userId'>>) => {
+    try {
+      await updateDoc(doc(db, 'entries', id), entry);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `entries/${id}`);
+    }
+  };
+
   return {
     entries,
     budgets,
@@ -164,6 +181,8 @@ export function useFinanceData(currentUser: FirebaseUser | null) {
     addEntry,
     addBudget,
     addRecurring,
-    deleteRecurring
+    deleteRecurring,
+    deleteEntry,
+    updateEntry
   };
 }

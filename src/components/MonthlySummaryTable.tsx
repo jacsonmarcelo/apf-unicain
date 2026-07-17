@@ -1,15 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FinancialEntry, TransactionType } from '@/types/finance';
 import { FINANCIAL_TABLES } from '@/constants/finance';
 import { cn } from '@/lib/utils';
+import { Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { EditEntryModal } from './EditEntryModal';
 
 interface MonthlySummaryTableProps {
   entries: FinancialEntry[];
+  onUpdateEntry: (id: string, entry: any) => Promise<void>;
+  onDeleteEntry: (id: string) => Promise<void>;
 }
 
-export function MonthlySummaryTable({ entries }: MonthlySummaryTableProps) {
+export function MonthlySummaryTable({ entries, onUpdateEntry, onDeleteEntry }: MonthlySummaryTableProps) {
+  const [editingEntry, setEditingEntry] = useState<FinancialEntry | null>(null);
+
   // Group entries by table
   const grouped = Object.keys(FINANCIAL_TABLES).reduce((acc, tableId) => {
     acc[tableId] = entries.filter(e => e.tableId === tableId);
@@ -62,18 +69,27 @@ export function MonthlySummaryTable({ entries }: MonthlySummaryTableProps) {
                 <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   <div className="space-y-1">
                     {tableEntries.map((entry) => (
-                      <div key={entry.id} className="flex justify-between items-center py-3 border-b border-card-border/30 last:border-0 hover:bg-slate-800/10 transition-colors px-1">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-slate-200 text-sm font-medium">{entry.description}</span>
+                      <div key={entry.id} className="flex justify-between items-center py-2.5 border-b border-card-border/30 last:border-0 hover:bg-slate-800/20 transition-colors px-2 rounded-lg group">
+                        <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+                          <span className="text-slate-200 text-sm font-medium truncate">{entry.description}</span>
                           <span className="text-label text-[9px] uppercase font-bold tracking-wider">{entry.categoryId}</span>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5 shrink-0">
                           <span className="text-slate-500 text-[10px] font-mono">
                             {new Date(entry.date).getDate()}/{new Date(entry.date).getMonth() + 1}
                           </span>
                           <span className={cn("font-mono font-semibold text-sm", table.type === TransactionType.INCOME ? "text-accent-green" : "text-accent-rose")}>
                             {table.type === TransactionType.INCOME ? "+" : "-"} R$ {entry.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </span>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => setEditingEntry(entry)}
+                            className="h-7 w-7 rounded-md opacity-60 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 transition-opacity text-slate-400 hover:text-accent-green hover:bg-accent-green/10 cursor-pointer shrink-0"
+                            title="Editar lançamento"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -88,6 +104,14 @@ export function MonthlySummaryTable({ entries }: MonthlySummaryTableProps) {
           </div>
         );
       })}
+
+      <EditEntryModal 
+        isOpen={editingEntry !== null}
+        onClose={() => setEditingEntry(null)}
+        entry={editingEntry}
+        onSave={onUpdateEntry}
+        onDelete={onDeleteEntry}
+      />
     </div>
   );
 }

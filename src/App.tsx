@@ -35,7 +35,9 @@ export default function App() {
     addEntry, 
     addBudget, 
     addRecurring, 
-    deleteRecurring 
+    deleteRecurring,
+    deleteEntry,
+    updateEntry
   } = useFinanceData(user);
 
   // Test Firestore connection on mount
@@ -171,7 +173,11 @@ export default function App() {
             <div className="lg:col-span-2">
               <section className="space-y-4">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-label border-b border-card-border pb-2">Alocação Mensal: <span className="text-accent-green">{currentMonth.toLocaleDateString('pt-BR', { month: 'long' })}</span></h2>
-                <MonthlySummaryTable entries={monthEntries} />
+                <MonthlySummaryTable 
+                  entries={monthEntries} 
+                  onUpdateEntry={updateEntry} 
+                  onDeleteEntry={deleteEntry} 
+                />
               </section>
             </div>
           </div>
