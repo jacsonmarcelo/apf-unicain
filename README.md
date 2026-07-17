@@ -1,5 +1,11 @@
 # Finanza: Planejamento & Análise Financeira (FinanzaPulse)
 
+> [!IMPORTANT]
+> **⚠️ ATENÇÃO SOBRE A PUBLICAÇÃO E DEPLOY DO APP:**
+> Este aplicativo **NÃO** é publicado automaticamente a partir de commits ou alterações feitas diretamente no seu repositório do GitHub.
+> A publicação e o deploy da versão estável (**Shared URL / link público**) são gerenciados e atualizados diretamente através do painel do **Google AI Studio** (com as compilações e implantações automáticas no Cloud Run que a plataforma gerencia).
+> Fazer commits no GitHub é excelente para manter seu histórico de código, controle de versão e backups, mas lembre-se de que as alterações reais de produção dependem da publicação no painel do AI Studio para ficarem ativas para os usuários finais na URL Pública!
+
 Este aplicativo é uma plataforma de Planejamento e Análise Financeira estruturada em React, Tailwind CSS, Node.js (Express) e Firebase (Auth/Firestore).
 
 ---
