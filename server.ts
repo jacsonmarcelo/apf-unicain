@@ -191,8 +191,11 @@ async function startServer() {
         }
       }
 
-      // Generate Custom Token
-      const customToken = await getAuth().createCustomToken(userRecord.uid);
+      // Generate Custom Token with verified email claims
+      const customToken = await getAuth().createCustomToken(userRecord.uid, {
+        email_verified: true,
+        email: email.toLowerCase().trim()
+      });
       
       res.json({ success: true, customToken });
     } catch (error: any) {
