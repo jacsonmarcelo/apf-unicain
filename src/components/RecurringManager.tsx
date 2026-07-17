@@ -25,9 +25,25 @@ export function RecurringManager({ recurringEntries, onAdd, onDelete }: Recurrin
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description || !tableId || !category || !amount || !day) return;
-
     setError(null);
+
+    if (!description.trim()) {
+      setError('Por favor, informe uma descrição para o lançamento recorrente.');
+      return;
+    }
+    if (!tableId || !category) {
+      setError('Por favor, selecione uma Tabela & Categoria.');
+      return;
+    }
+    if (!amount) {
+      setError('Por favor, informe o valor.');
+      return;
+    }
+    if (!day) {
+      setError('Por favor, informe o dia de cobrança (1 a 31).');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const parsedAmount = parseFloat(amount.replace(',', '.'));
@@ -41,7 +57,7 @@ export function RecurringManager({ recurringEntries, onAdd, onDelete }: Recurrin
       }
 
       await onAdd({
-        description,
+        description: description.trim(),
         tableId,
         categoryId: category,
         amount: parsedAmount,
@@ -70,12 +86,11 @@ export function RecurringManager({ recurringEntries, onAdd, onDelete }: Recurrin
             value={description} 
             onChange={e => setDescription(e.target.value)} 
             className="bg-brand-bg border-slate-700/50 h-10 text-slate-200" 
-            required
           />
         </div>
         <div className="space-y-1.5">
           <Label className="text-label text-[11px] font-bold uppercase tracking-wider">Tabela & Categoria</Label>
-          <Select value={tableId && category ? `${tableId}:${category}` : ''} onValueChange={(val) => {
+          <Select value={`${tableId}:${category}`} onValueChange={(val) => {
             const [t, c] = val.split(':');
             setTableId(t);
             setCategory(c);
@@ -87,7 +102,7 @@ export function RecurringManager({ recurringEntries, onAdd, onDelete }: Recurrin
               {(Object.entries(CATEGORIES_BY_TABLE) as [string, string[]][]).map(([tableKey, categories]) => (
                 <SelectGroup key={tableKey}>
                   <SelectLabel className="text-accent-green font-bold uppercase text-[9px] tracking-[0.2em] px-2 py-2 border-t border-card-border/50 bg-slate-900/30">
-                    {FINANCIAL_TABLES[tableKey].name}
+                    {FINANCIAL_TABLES[tableKey]?.name || tableKey}
                   </SelectLabel>
                   {categories.map((cat) => (
                     <SelectItem key={`${tableKey}:${cat}`} value={`${tableKey}:${cat}`} className="text-xs cursor-pointer">
@@ -111,7 +126,6 @@ export function RecurringManager({ recurringEntries, onAdd, onDelete }: Recurrin
                 setAmount(val);
               }} 
               className="bg-brand-bg border-slate-700/50 h-10 pl-9 font-mono text-slate-200" 
-              required
             />
           </div>
         </div>
@@ -124,13 +138,12 @@ export function RecurringManager({ recurringEntries, onAdd, onDelete }: Recurrin
             value={day} 
             onChange={e => setDay(e.target.value)} 
             className="bg-brand-bg border-slate-700/50 h-10 font-mono text-slate-200" 
-            required
           />
         </div>
         <Button 
           type="submit"
-          disabled={isSaving || !description || !tableId || !category || !amount}
-          className="bg-accent-green text-slate-900 font-bold h-10 uppercase tracking-widest text-[11px] transition-all hover:opacity-90 flex items-center justify-center gap-2"
+          disabled={isSaving}
+          className="bg-accent-green text-slate-900 font-bold h-10 uppercase tracking-widest text-[11px] transition-all hover:opacity-90 flex items-center justify-center gap-2 cursor-pointer w-full"
         >
           {isSaving ? (
             <Loader2 className="w-4 h-4 animate-spin" />
