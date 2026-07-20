@@ -14,6 +14,7 @@ import {
 import { User as FirebaseUser } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
 import { FinancialEntry, BudgetLimit, RecurringEntry } from '../types/finance';
+import { trackEvent } from '../lib/analytics';
 
 enum OperationType {
   CREATE = 'create',
@@ -49,6 +50,20 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+  
+  if (auth.currentUser) {
+    trackEvent({
+      eventName: 'app_error',
+      userId: auth.currentUser.uid,
+      screen: path || 'firestore',
+      metadata: {
+        error: errInfo.error,
+        operationType,
+        path
+      }
+    }).catch(err => console.warn('Error logging app_error to analytics:', err));
+  }
+
   throw new Error(JSON.stringify(errInfo));
 }
 
@@ -117,6 +132,28 @@ export function useFinanceData(currentUser: FirebaseUser | null) {
         userId: currentUser.uid,
         createdAt: serverTimestamp()
       });
+
+      // Track first income or first expense event
+      const isIncome = ['RECEITA', 'RECEITA_EXTRA'].includes(entry.tableId);
+      if (isIncome) {
+        const hasExistingIncome = entries.some(e => ['RECEITA', 'RECEITA_EXTRA'].includes(e.tableId));
+        if (!hasExistingIncome) {
+          trackEvent({
+            eventName: 'first_income_created',
+            userId: currentUser.uid,
+            screen: 'dashboard'
+          }).catch(err => console.warn('Error tracking first_income_created:', err));
+        }
+      } else {
+        const hasExistingExpense = entries.some(e => !['RECEITA', 'RECEITA_EXTRA'].includes(e.tableId));
+        if (!hasExistingExpense) {
+          trackEvent({
+            eventName: 'first_expense_created',
+            userId: currentUser.uid,
+            screen: 'dashboard'
+          }).catch(err => console.warn('Error tracking first_expense_created:', err));
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'entries');
     }

@@ -56,12 +56,29 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "isSubscribed"]
+    },
+    "AnalyticsEvent": {
+      "title": "Analytics Event",
+      "description": "Log of user behavior tracking without sensitive or financial details",
+      "type": "object",
+      "properties": {
+        "eventName": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "screen": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "required": ["eventName", "userId", "screen"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
       "description": "Registered system users"
+    },
+    "/analytics_events/{eventId}": {
+      "schema": "AnalyticsEvent",
+      "description": "User behavior tracking logs"
     },
     "/entries/{entryId}": {
       "schema": "FinancialEntry",

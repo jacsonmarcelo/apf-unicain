@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { useAuth, GoogleSignIn } from './lib/auth';
 import { Button } from './components/ui/button';
 import { testFirestoreConnection } from './lib/firebase';
+import { trackEvent } from './lib/analytics';
 
 export default function App() {
   const { user, profile, loadingProfile, signOut } = useAuth();
@@ -44,6 +45,63 @@ export default function App() {
   useEffect(() => {
     testFirestoreConnection();
   }, []);
+
+  // Track tab/screen changes for analytics
+  useEffect(() => {
+    if (user) {
+      if (activeTab === 'dashboard') {
+        trackEvent({
+          eventName: 'dashboard_opened',
+          userId: user.uid,
+          screen: 'dashboard'
+        }).catch(err => console.warn('Error tracking dashboard_opened:', err));
+      } else if (activeTab === 'annual') {
+        trackEvent({
+          eventName: 'annual_report_opened',
+          userId: user.uid,
+          screen: 'annual_report'
+        }).catch(err => console.warn('Error tracking annual_report_opened:', err));
+      }
+    }
+  }, [activeTab, user?.uid]);
+
+  // Track global client-side errors and promise rejections for analytics
+  useEffect(() => {
+    if (!user) return;
+
+    const handleError = (event: ErrorEvent) => {
+      trackEvent({
+        eventName: 'app_error',
+        userId: user.uid,
+        screen: activeTab,
+        metadata: {
+          error: event.message || 'Unknown runtime error',
+          filename: event.filename,
+          lineno: event.lineno
+        }
+      }).catch(err => console.warn('Error tracking app_error from error event:', err));
+    };
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      const errorMsg = event.reason?.message || String(event.reason || 'Unhandled promise rejection');
+      trackEvent({
+        eventName: 'app_error',
+        userId: user.uid,
+        screen: activeTab,
+        metadata: {
+          error: errorMsg
+        }
+      }).catch(err => console.warn('Error tracking app_error from rejection event:', err));
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, [user?.uid, activeTab]);
 
   // Effect to generate recurring entries for the current month
   useEffect(() => {

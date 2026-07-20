@@ -93,6 +93,15 @@ service cloud.firestore {
         && data.isAdmin is bool;
     }
 
+    function isValidAnalyticsEvent(data) {
+      return data.keys().hasAll(['eventName', 'userId', 'timestamp', 'screen'])
+        && (data.keys().size() == 4 || (data.keys().size() == 5 && data.keys().hasAll(['metadata'])))
+        && data.eventName is string && data.eventName.size() <= 100
+        && data.userId == request.auth.uid
+        && data.screen is string && data.screen.size() <= 100
+        && (data.keys().size() == 4 || data.metadata is map);
+    }
+
     // --- Collections ---
 
     match /users/{userId} {
@@ -147,6 +156,12 @@ service cloud.firestore {
       allow delete: if isApproved() && isOwner(existing().userId);
       allow get: if isApproved() && isOwner(existing().userId);
       allow list: if isApproved() && resource.data.userId == request.auth.uid;
+    }
+
+    match /analytics_events/{eventId} {
+      allow create: if isSignedIn() && isValidAnalyticsEvent(incoming()) && incoming().userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isAdmin();
     }
 
     match /auth_otps/{email} {

@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { LogIn, Mail, Send, Loader2, KeyRound, ArrowRight, ExternalLink } from 'lucide-react';
+import { trackEvent } from './analytics';
 
 export interface UserProfile {
   email: string;
@@ -287,7 +288,21 @@ export function useAuth() {
               await setDoc(userRef, defaultProfile);
               setProfile(defaultProfile);
             }
+            
+            // Track user_registered
+            trackEvent({
+              eventName: 'user_registered',
+              userId: u.uid,
+              screen: 'auth'
+            }).catch(err => console.warn('Error tracking user_registered:', err));
           }
+          
+          // Track first_login (with internal single-occurrence check)
+          trackEvent({
+            eventName: 'first_login',
+            userId: u.uid,
+            screen: 'auth'
+          }).catch(err => console.warn('Error tracking first_login:', err));
         } catch (error) {
           console.error("Error fetching/migrating profile:", error);
         }
