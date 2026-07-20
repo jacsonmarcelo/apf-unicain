@@ -14,7 +14,7 @@ import {
 import { User as FirebaseUser } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
 import { FinancialEntry, BudgetLimit, RecurringEntry } from '../types/finance';
-import { trackEvent } from '../lib/analytics';
+import { trackEvent, updateDailyMetric } from '../lib/analytics';
 
 enum OperationType {
   CREATE = 'create',
@@ -154,6 +154,10 @@ export function useFinanceData(currentUser: FirebaseUser | null) {
           }).catch(err => console.warn('Error tracking first_expense_created:', err));
         }
       }
+
+      // Update daily metrics to increment launchesCount
+      updateDailyMetric(currentUser.uid, { incrementLaunches: true })
+        .catch(err => console.warn('Error updating daily metrics for entry creation:', err));
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'entries');
     }

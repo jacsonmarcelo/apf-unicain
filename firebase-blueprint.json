@@ -69,6 +69,21 @@
         "metadata": { "type": "object" }
       },
       "required": ["eventName", "userId", "screen"]
+    },
+    "UserMetric": {
+      "title": "User Metric",
+      "description": "Daily metrics tracked per user to monitor activity level and page visits",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "launchesCount": { "type": "number" },
+        "dashboardOpened": { "type": "boolean" },
+        "reportsOpened": { "type": "boolean" },
+        "activeToday": { "type": "boolean" },
+        "lastActivity": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "launchesCount", "dashboardOpened", "reportsOpened", "activeToday"]
     }
   },
   "firestore": {
@@ -79,6 +94,10 @@
     "/analytics_events/{eventId}": {
       "schema": "AnalyticsEvent",
       "description": "User behavior tracking logs"
+    },
+    "/user_metrics/{metricId}": {
+      "schema": "UserMetric",
+      "description": "Aggregated user usage metrics grouped by date"
     },
     "/entries/{entryId}": {
       "schema": "FinancialEntry",

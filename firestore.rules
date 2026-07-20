@@ -102,6 +102,17 @@ service cloud.firestore {
         && (data.keys().size() == 4 || data.metadata is map);
     }
 
+    function isValidUserMetric(data) {
+      return data.keys().hasAll(['userId', 'date', 'launchesCount', 'dashboardOpened', 'reportsOpened', 'activeToday', 'lastActivity'])
+        && data.keys().size() == 7
+        && data.userId == request.auth.uid
+        && data.date is string && data.date.size() == 10
+        && data.launchesCount is number
+        && data.dashboardOpened is bool
+        && data.reportsOpened is bool
+        && data.activeToday is bool;
+    }
+
     // --- Collections ---
 
     match /users/{userId} {
@@ -162,6 +173,12 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidAnalyticsEvent(incoming()) && incoming().userId == request.auth.uid;
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow list: if isAdmin();
+    }
+
+    match /user_metrics/{metricId} {
+      allow create: if isSignedIn() && isValidUserMetric(incoming()) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidUserMetric(incoming()) && incoming().userId == request.auth.uid && existing().userId == request.auth.uid;
+      allow get, list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     match /auth_otps/{email} {

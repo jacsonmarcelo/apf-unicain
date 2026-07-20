@@ -1,4 +1,4 @@
-import { collection, addDoc, query, where, getDocs, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, limit, serverTimestamp, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from './firebase';
 
 export type AnalyticsEventName =
@@ -22,6 +22,73 @@ const SINGLE_OCCURRENCE_EVENTS: AnalyticsEventName[] = [
   'first_income_created',
   'first_expense_created'
 ];
+
+/**
+ * Gets the current date string in local timezone format (YYYY-MM-DD).
+ */
+export function getLocalDateString(): string {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Updates or creates the daily metric document for the given user and date.
+ * Ensures each user has exactly one document per day in user_metrics.
+ */
+export async function updateDailyMetric(
+  userId: string,
+  updates: {
+    incrementLaunches?: boolean;
+    dashboardOpened?: boolean;
+    reportsOpened?: boolean;
+  }
+): Promise<void> {
+  if (!userId) return;
+
+  try {
+    const dateStr = getLocalDateString();
+    const docId = `${userId}_${dateStr}`;
+    const docRef = doc(db, 'user_metrics', docId);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const updateData: Record<string, any> = {
+        lastActivity: serverTimestamp(),
+        activeToday: true
+      };
+
+      if (updates.incrementLaunches) {
+        updateData.launchesCount = increment(1);
+      }
+      if (updates.dashboardOpened) {
+        updateData.dashboardOpened = true;
+      }
+      if (updates.reportsOpened) {
+        updateData.reportsOpened = true;
+      }
+
+      await updateDoc(docRef, updateData);
+    } else {
+      const initialData = {
+        userId,
+        date: dateStr,
+        launchesCount: updates.incrementLaunches ? 1 : 0,
+        dashboardOpened: !!updates.dashboardOpened,
+        reportsOpened: !!updates.reportsOpened,
+        activeToday: true,
+        lastActivity: serverTimestamp()
+      };
+
+      await setDoc(docRef, initialData);
+    }
+  } catch (error) {
+    console.warn('[Analytics] Error updating daily metric:', error);
+  }
+}
 
 /**
  * Clean metadata to strip out any potential financial details or personally identifiable information (PII).

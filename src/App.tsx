@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { useAuth, GoogleSignIn } from './lib/auth';
 import { Button } from './components/ui/button';
 import { testFirestoreConnection } from './lib/firebase';
-import { trackEvent } from './lib/analytics';
+import { trackEvent, updateDailyMetric } from './lib/analytics';
 
 export default function App() {
   const { user, profile, loadingProfile, signOut } = useAuth();
@@ -55,12 +55,20 @@ export default function App() {
           userId: user.uid,
           screen: 'dashboard'
         }).catch(err => console.warn('Error tracking dashboard_opened:', err));
+
+        // Update daily metrics
+        updateDailyMetric(user.uid, { dashboardOpened: true })
+          .catch(err => console.warn('Error updating daily metrics (dashboard):', err));
       } else if (activeTab === 'annual') {
         trackEvent({
           eventName: 'annual_report_opened',
           userId: user.uid,
           screen: 'annual_report'
         }).catch(err => console.warn('Error tracking annual_report_opened:', err));
+
+        // Update daily metrics
+        updateDailyMetric(user.uid, { reportsOpened: true })
+          .catch(err => console.warn('Error updating daily metrics (annual):', err));
       }
     }
   }, [activeTab, user?.uid]);
