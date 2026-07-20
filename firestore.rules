@@ -14,16 +14,23 @@ service cloud.firestore {
     
     function isApproved() {
       return isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSubscribed == true ||
         request.auth.token.email == 'jacsonmarcelo@gmail.com' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSubscribed == true ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        )) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower())) && 
+          get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data.isSubscribed == true
+        )
       );
     }
 
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.email == 'jacsonmarcelo@gmail.com' || 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        )
       );
     }
 
@@ -89,12 +96,29 @@ service cloud.firestore {
     // --- Collections ---
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isAdmin() || (isSignedIn() && request.auth.token.email.lower() == userId.lower());
       allow list: if isAdmin();
       allow create: if (isOwner(userId) || isAdmin())
-                    && (isAdmin() || incoming().isSubscribed == false)
+                    && (
+                      isAdmin() || 
+                      incoming().isSubscribed == false || 
+                      (
+                        exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower())) &&
+                        get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data.isSubscribed == incoming().isSubscribed
+                      )
+                    )
                     && (isAdmin() || incoming().isAdmin == false || request.auth.token.email == 'jacsonmarcelo@gmail.com');
-      allow update: if isAdmin();
+      allow update: if isAdmin() || (
+        isOwner(userId) && 
+        (
+          incoming().isSubscribed == existing().isSubscribed || 
+          (
+            exists(/databases/$(database)/documents/users/$(request.auth.token.email.lower())) &&
+            get(/databases/$(database)/documents/users/$(request.auth.token.email.lower())).data.isSubscribed == incoming().isSubscribed
+          )
+        ) &&
+        (incoming().isAdmin == existing().isAdmin)
+      );
     }
 
     match /entries/{entryId} {

@@ -4,6 +4,7 @@ import {
   collection, 
   onSnapshot, 
   doc, 
+  getDoc,
   updateDoc, 
   query, 
   orderBy, 
@@ -31,7 +32,9 @@ import {
   UserPlus, 
   Loader2,
   Search,
-  Users
+  Users,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { UserProfile } from '@/lib/auth';
 
@@ -44,6 +47,8 @@ export function AdminDashboard() {
   const [newEmail, setNewEmail] = useState('');
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
@@ -60,40 +65,93 @@ export function AdminDashboard() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEmail || creating) return;
+    if (!newEmail.trim() || creating) return;
 
     setCreating(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    const targetEmail = newEmail.toLowerCase().trim();
+
     try {
-      // Create a "bare" user profile. 
-      // Note: We use a random ID or email-based ID if preferred. 
-      // Firestore will allow this because of the rules (isAdmin).
-      const userRef = doc(collection(db, 'users'));
+      // 1. Check if user is already in the loaded local list
+      const emailExists = users.some(u => u.email?.toLowerCase().trim() === targetEmail);
+      if (emailExists) {
+        throw new Error('Este e-mail já possui um cadastro ou pré-cadastro ativo no sistema.');
+      }
+
+      // 2. Double check Firestore directly using email as ID
+      const userRef = doc(db, 'users', targetEmail);
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        throw new Error('Este e-mail já possui um pré-cadastro ativo.');
+      }
+
+      // 3. Create the pre-registration document using the normalized email as the document ID
       await setDoc(userRef, {
-        email: newEmail.toLowerCase(),
-        displayName: newName || 'Convidado',
+        email: targetEmail,
+        displayName: newName.trim() || 'Convidado',
         isSubscribed: true,
         isAdmin: false,
         createdAt: serverTimestamp()
       });
+
+      setSuccessMessage(`Usuário com e-mail "${targetEmail}" foi pré-cadastrado e inscrito com sucesso!`);
       setNewEmail('');
       setNewName('');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating user: ", error);
+      setErrorMessage(error.message || 'Ocorreu um erro ao tentar realizar o pré-cadastro.');
+    } finally {
+      setCreating(false);
     }
-    setCreating(false);
   };
 
-  const toggleSubscription = async (userId: string, currentStatus: boolean) => {
+  const toggleSubscription = async (user: UserProfile & { id: string }) => {
+    const newStatus = !user.isSubscribed;
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        isSubscribed: !currentStatus
+      // 1. Update the main clicked document (either email or UID based)
+      await updateDoc(doc(db, 'users', user.id), {
+        isSubscribed: newStatus
       });
+
+      // 2. If the main document clicked is UID-based, also search and sync the pre-registration (email-based) document
+      const emailKey = user.email?.toLowerCase().trim();
+      if (emailKey && user.id !== emailKey) {
+        try {
+          const emailRef = doc(db, 'users', emailKey);
+          const emailSnap = await getDoc(emailRef);
+          if (emailSnap.exists()) {
+            await updateDoc(emailRef, {
+              isSubscribed: newStatus
+            });
+          }
+        } catch (e) {
+          console.warn("Could not sync email-based document subscription:", e);
+        }
+      }
     } catch (error) {
       console.error("Error updating user status: ", error);
     }
   };
 
-  const filteredUsers = users.filter(user => 
+  // Group users by email to avoid duplicates when both email-based and UID-based docs exist
+  const uniqueUsersMap: { [email: string]: UserProfile & { id: string } } = {};
+  users.forEach(u => {
+    const emailKey = u.email?.toLowerCase().trim();
+    if (!emailKey) return;
+    
+    const existing = uniqueUsersMap[emailKey];
+    const isUid = u.id !== emailKey; // UID-based document is preferred
+    
+    if (!existing || isUid) {
+      uniqueUsersMap[emailKey] = u;
+    }
+  });
+
+  const uniqueUsers = Object.values(uniqueUsersMap);
+
+  const filteredUsers = uniqueUsers.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.displayName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -129,7 +187,7 @@ export function AdminDashboard() {
               placeholder="exemplo@email.com"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              className="bg-slate-900 border-card-border h-12 rounded-xl focus:ring-accent-green/20"
+              className="bg-slate-900 border-card-border h-12 rounded-xl focus:ring-accent-green/20 text-slate-200"
               required
             />
           </div>
@@ -140,16 +198,31 @@ export function AdminDashboard() {
               placeholder="Nome do cliente"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="bg-slate-900 border-card-border h-12 rounded-xl focus:ring-accent-green/20"
+              className="bg-slate-900 border-card-border h-12 rounded-xl focus:ring-accent-green/20 text-slate-200"
             />
           </div>
           <Button 
+            type="submit"
             disabled={creating}
-            className="bg-accent-green hover:opacity-90 text-slate-900 font-bold h-12 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all active:scale-95"
+            className="bg-accent-green hover:opacity-90 text-slate-900 font-bold h-12 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all active:scale-95 cursor-pointer w-full flex items-center justify-center gap-2"
           >
             {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Cadastrar e Inscrever'}
           </Button>
         </form>
+
+        {successMessage && (
+          <div className="mt-6 bg-accent-green/10 border border-accent-green/20 text-accent-green p-4 rounded-xl flex items-start gap-3 text-xs animate-in fade-in duration-200">
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>{successMessage}</p>
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="mt-6 bg-accent-rose/10 border border-accent-rose/20 text-accent-rose p-4 rounded-xl flex items-start gap-3 text-xs animate-in fade-in duration-200">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>{errorMessage}</p>
+          </div>
+        )}
       </div>
 
       {/* Users List */}
@@ -217,7 +290,7 @@ export function AdminDashboard() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => toggleSubscription(user.id, user.isSubscribed)}
+                      onClick={() => toggleSubscription(user)}
                       className={user.isSubscribed ? "text-accent-rose hover:bg-accent-rose/10" : "text-accent-green hover:bg-accent-green/10"}
                     >
                       {user.isSubscribed ? (

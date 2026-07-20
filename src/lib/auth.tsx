@@ -9,7 +9,7 @@ import {
   User as FirebaseUser,
   signInWithCustomToken
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { LogIn, Mail, Send, Loader2, KeyRound, ArrowRight, ExternalLink } from 'lucide-react';
 
 export interface UserProfile {
@@ -34,21 +34,7 @@ export function GoogleSignIn() {
     setError(null);
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          displayName: user.displayName || 'Usuário',
-          isSubscribed: false,
-          isAdmin: user.email === 'jacsonmarcelo@gmail.com',
-          createdAt: serverTimestamp()
-        });
-      }
+      await signInWithPopup(auth, provider);
     } catch (err: any) {
       console.error("Error signing in: ", err);
       if (err.code === 'auth/popup-blocked') {
@@ -145,22 +131,7 @@ export function EmailSignIn() {
       
       const data = await response.json();
       if (response.ok && data.customToken) {
-        const result = await signInWithCustomToken(auth, data.customToken);
-        const u = result.user;
-        
-        // Finalize profile creation if new
-        const userRef = doc(db, 'users', u.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            email: u.email,
-            displayName: u.displayName || email.split('@')[0],
-            isSubscribed: false,
-            isAdmin: u.email === 'jacsonmarcelo@gmail.com',
-            createdAt: serverTimestamp()
-          });
-        }
+        await signInWithCustomToken(auth, data.customToken);
       } else {
         setError(data.error || 'Código inválido');
       }
@@ -255,12 +226,70 @@ export function useAuth() {
         setLoadingProfile(true);
         try {
           const userRef = doc(db, 'users', u.uid);
-          const userSnap = await getDoc(userRef);
+          let userSnap = await getDoc(userRef);
+          
+          const targetEmail = u.email?.toLowerCase().trim();
+          let preRegData: UserProfile | null = null;
+          
+          if (targetEmail) {
+            try {
+              const emailRef = doc(db, 'users', targetEmail);
+              const emailSnap = await getDoc(emailRef);
+              if (emailSnap.exists()) {
+                preRegData = emailSnap.data() as UserProfile;
+              }
+            } catch (err) {
+              console.warn("Could not check email-based pre-registration document:", err);
+            }
+          }
+          
           if (userSnap.exists()) {
-            setProfile(userSnap.data() as UserProfile);
+            const currentProfile = userSnap.data() as UserProfile;
+            const needsSync = preRegData && (
+              (preRegData.isSubscribed && !currentProfile.isSubscribed) ||
+              (preRegData.isAdmin && !currentProfile.isAdmin)
+            );
+            
+            if (needsSync && preRegData) {
+              const updatedProfile = {
+                ...currentProfile,
+                isSubscribed: preRegData.isSubscribed ?? currentProfile.isSubscribed,
+                isAdmin: preRegData.isAdmin ?? currentProfile.isAdmin,
+              };
+              await updateDoc(userRef, {
+                isSubscribed: updatedProfile.isSubscribed,
+                isAdmin: updatedProfile.isAdmin
+              });
+              setProfile(updatedProfile);
+            } else {
+              setProfile(currentProfile);
+            }
+          } else {
+            if (preRegData) {
+              const newProfileData = {
+                email: targetEmail || '',
+                displayName: u.displayName || preRegData.displayName || (targetEmail ? targetEmail.split('@')[0] : 'Convidado'),
+                isSubscribed: preRegData.isSubscribed ?? true,
+                isAdmin: targetEmail === 'jacsonmarcelo@gmail.com' || (preRegData.isAdmin ?? false),
+                createdAt: preRegData.createdAt || serverTimestamp()
+              };
+              
+              await setDoc(userRef, newProfileData);
+              setProfile(newProfileData);
+            } else {
+              const defaultProfile = {
+                email: targetEmail || '',
+                displayName: u.displayName || (targetEmail ? targetEmail.split('@')[0] : 'Usuário'),
+                isSubscribed: targetEmail === 'jacsonmarcelo@gmail.com',
+                isAdmin: targetEmail === 'jacsonmarcelo@gmail.com',
+                createdAt: serverTimestamp()
+              };
+              await setDoc(userRef, defaultProfile);
+              setProfile(defaultProfile);
+            }
           }
         } catch (error) {
-          console.error("Error fetching profile:", error);
+          console.error("Error fetching/migrating profile:", error);
         }
         setLoadingProfile(false);
       } else {
