@@ -11,7 +11,8 @@ import {
   LogOut,
   Wallet,
   ShieldAlert,
-  ShieldCheck
+  ShieldCheck,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,7 @@ export function Shell({
 
   if (isAdmin) {
     navItems.push({ id: 'admin', label: 'Admin', icon: <ShieldAlert className="w-4 h-4" /> });
+    navItems.push({ id: 'analytics', label: 'Analytics', icon: <Activity className="w-4 h-4" /> });
   }
 
   return (

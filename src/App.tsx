@@ -13,6 +13,7 @@ import { AnnualSummary } from './components/AnnualSummary';
 import { BudgetManager } from './components/BudgetManager';
 import { RecurringManager } from './components/RecurringManager';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AdminAnalytics } from './components/AdminAnalytics';
 import { useFinanceData } from './hooks/useFinanceData';
 import { exportToCSV } from './lib/export';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -292,6 +293,12 @@ export default function App() {
             <p className="text-slate-400">Gerencie o acesso de usuários e aprovações do sistema.</p>
           </div>
           <AdminDashboard />
+        </section>
+      )}
+
+      {activeTab === 'analytics' && profile?.isAdmin && (
+        <section className="space-y-6 animate-in fade-in duration-200">
+          <AdminAnalytics />
         </section>
       )}
     </Shell>
