@@ -113,6 +113,17 @@ service cloud.firestore {
         && data.activeToday is bool;
     }
 
+    function isValidFeedback(data) {
+      return data.keys().hasAll(['userId', 'createdAt', 'rating', 'nps', 'mostUseful', 'difficulty', 'suggestion'])
+        && data.keys().size() == 7
+        && data.userId == request.auth.uid
+        && data.rating is number && data.rating >= 1 && data.rating <= 5
+        && data.nps is number && data.nps >= 0 && data.nps <= 10
+        && data.mostUseful is list
+        && data.difficulty is string && data.difficulty.size() <= 1000
+        && data.suggestion is string && data.suggestion.size() <= 5000;
+    }
+
     // --- Collections ---
 
     match /users/{userId} {
@@ -178,6 +189,11 @@ service cloud.firestore {
     match /user_metrics/{metricId} {
       allow create: if isSignedIn() && isValidUserMetric(incoming()) && incoming().userId == request.auth.uid;
       allow update: if isSignedIn() && isValidUserMetric(incoming()) && incoming().userId == request.auth.uid && existing().userId == request.auth.uid;
+      allow get, list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /feedbacks/{feedbackId} {
+      allow create: if isSignedIn() && isValidFeedback(incoming()) && incoming().userId == request.auth.uid;
       allow get, list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 

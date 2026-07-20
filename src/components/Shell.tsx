@@ -12,7 +12,8 @@ import {
   Wallet,
   ShieldAlert,
   ShieldCheck,
-  Activity
+  Activity,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -56,6 +57,7 @@ export function Shell({
     { id: 'annual', label: 'Visão Anual', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'budgets', label: 'Metas', icon: <Settings2 className="w-4 h-4" /> },
     { id: 'recurring', label: 'Recorrentes', icon: <Repeat className="w-4 h-4" /> },
+    { id: 'feedback', label: 'Contribuições', icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
   if (isAdmin) {

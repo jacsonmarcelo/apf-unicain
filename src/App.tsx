@@ -14,6 +14,7 @@ import { BudgetManager } from './components/BudgetManager';
 import { RecurringManager } from './components/RecurringManager';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AdminAnalytics } from './components/AdminAnalytics';
+import { AllyFeedback } from './components/AllyFeedback';
 import { useFinanceData } from './hooks/useFinanceData';
 import { exportToCSV } from './lib/export';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
@@ -283,6 +284,12 @@ export default function App() {
             onAdd={addRecurring} 
             onDelete={deleteRecurring} 
           />
+        </section>
+      )}
+
+      {activeTab === 'feedback' && (
+        <section className="space-y-6 animate-in fade-in duration-200">
+          <AllyFeedback />
         </section>
       )}
 

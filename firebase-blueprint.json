@@ -84,9 +84,28 @@
         "lastActivity": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "date", "launchesCount", "dashboardOpened", "reportsOpened", "activeToday"]
+    },
+    "Feedback": {
+      "title": "Ally Feedback",
+      "description": "User feedbacks containing satisfaction score, NPS, and suggestions",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "rating": { "type": "number" },
+        "nps": { "type": "number" },
+        "mostUseful": { "type": "array", "items": { "type": "string" } },
+        "difficulty": { "type": "string" },
+        "suggestion": { "type": "string" }
+      },
+      "required": ["userId", "rating", "nps", "mostUseful", "difficulty", "suggestion"]
     }
   },
   "firestore": {
+    "/feedbacks/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "Submitted user feedback and metrics"
+    },
     "/users/{userId}": {
       "schema": "User",
       "description": "Registered system users"

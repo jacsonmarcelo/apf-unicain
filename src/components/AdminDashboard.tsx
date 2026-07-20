@@ -37,8 +37,10 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { UserProfile } from '@/lib/auth';
+import { AdminFeedback } from './AdminFeedback';
 
 export function AdminDashboard() {
+  const [adminTab, setAdminTab] = useState<'users' | 'feedbacks'>('users');
   const [users, setUsers] = useState<(UserProfile & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -166,8 +168,36 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Create User Form */}
-      <div className="bg-card-bg rounded-[2rem] border border-card-border p-8 shadow-2xl">
+      {/* Sub-tabs selection */}
+      <div className="flex border-b border-card-border pb-px gap-6 mb-2">
+        <button
+          onClick={() => setAdminTab('users')}
+          className={`pb-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+            adminTab === 'users'
+              ? 'border-accent-green text-accent-green'
+              : 'border-transparent text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Controle de Usuários
+        </button>
+        <button
+          onClick={() => setAdminTab('feedbacks')}
+          className={`pb-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+            adminTab === 'feedbacks'
+              ? 'border-accent-green text-accent-green'
+              : 'border-transparent text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Contribuições dos Aliados
+        </button>
+      </div>
+
+      {adminTab === 'feedbacks' ? (
+        <AdminFeedback />
+      ) : (
+        <>
+          {/* Create User Form */}
+          <div className="bg-card-bg rounded-[2rem] border border-card-border p-8 shadow-2xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-accent-green/10 rounded-xl flex items-center justify-center">
             <UserPlus className="w-5 h-5 text-accent-green" />
@@ -313,6 +343,8 @@ export function AdminDashboard() {
           </TableBody>
         </Table>
       </div>
+      </>
+      )}
     </div>
   );
 }
