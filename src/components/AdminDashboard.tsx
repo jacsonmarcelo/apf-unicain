@@ -38,9 +38,10 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '@/lib/auth';
 import { AdminFeedback } from './AdminFeedback';
+import { AdminBetaRequests } from './AdminBetaRequests';
 
 export function AdminDashboard() {
-  const [adminTab, setAdminTab] = useState<'users' | 'feedbacks'>('users');
+  const [adminTab, setAdminTab] = useState<'users' | 'beta' | 'feedbacks'>('users');
   const [users, setUsers] = useState<(UserProfile & { id: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,6 +182,16 @@ export function AdminDashboard() {
           Controle de Usuários
         </button>
         <button
+          onClick={() => setAdminTab('beta')}
+          className={`pb-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
+            adminTab === 'beta'
+              ? 'border-accent-green text-accent-green'
+              : 'border-transparent text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          Solicitações Beta
+        </button>
+        <button
           onClick={() => setAdminTab('feedbacks')}
           className={`pb-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all cursor-pointer ${
             adminTab === 'feedbacks'
@@ -192,7 +203,9 @@ export function AdminDashboard() {
         </button>
       </div>
 
-      {adminTab === 'feedbacks' ? (
+      {adminTab === 'beta' ? (
+        <AdminBetaRequests />
+      ) : adminTab === 'feedbacks' ? (
         <AdminFeedback />
       ) : (
         <>

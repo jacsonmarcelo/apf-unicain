@@ -124,6 +124,16 @@ service cloud.firestore {
         && data.suggestion is string && data.suggestion.size() <= 5000;
     }
 
+    function isValidBetaRequest(data) {
+      return data.keys().hasAll(['name', 'email', 'motivation', 'createdAt', 'status'])
+        && (data.keys().size() == 5 || (data.keys().size() == 6 && data.keys().hasAll(['whatsapp'])))
+        && data.name is string && data.name.size() <= 200
+        && data.email is string && data.email.size() <= 200
+        && data.motivation is string && data.motivation.size() <= 2000
+        && data.status is string && data.status.size() <= 50
+        && (!data.keys().hasAll(['whatsapp']) || data.whatsapp is string && data.whatsapp.size() <= 50);
+    }
+
     // --- Collections ---
 
     match /users/{userId} {
@@ -195,6 +205,11 @@ service cloud.firestore {
     match /feedbacks/{feedbackId} {
       allow create: if isSignedIn() && isValidFeedback(incoming()) && incoming().userId == request.auth.uid;
       allow get, list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /beta_requests/{requestId} {
+      allow create: if isValidBetaRequest(incoming());
+      allow get, list, update, delete: if isAdmin();
     }
 
     match /auth_otps/{email} {
