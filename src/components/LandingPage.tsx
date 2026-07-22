@@ -94,10 +94,10 @@ export function LandingPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-slate-900 border border-card-border text-accent-green text-[10px] font-bold uppercase tracking-[0.25em] shadow-inner"
+              className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-slate-900 border border-card-border text-accent-green text-[10px] font-bold uppercase tracking-[0.2em] shadow-inner"
             >
               <Sparkles className="w-3.5 h-3.5 text-accent-green" />
-              <span>Sistema de Evolução Financeira</span>
+              <span>Sistema de Evolução Financeira • Vagas Beta Limitadas</span>
             </motion.div>
 
             <motion.h1 
@@ -114,7 +114,7 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-slate-300 text-base md:text-xl max-w-2xl leading-relaxed mb-10 mx-auto lg:mx-0 font-normal"
+              className="text-slate-300 text-base md:text-xl max-w-2xl leading-relaxed mb-8 mx-auto lg:mx-0 font-normal"
             >
               O Finanza transforma princípios sólidos de organização financeira em hábitos diários simples de executar.
             </motion.p>
@@ -123,27 +123,45 @@ export function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
+              className="space-y-4"
             >
-              <Button 
-                size="lg" 
-                onClick={() => setMode('beta')}
-                className="w-full sm:w-auto bg-accent-green hover:opacity-90 text-slate-900 font-bold px-8 h-14 rounded-xl text-base transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Quero participar do Beta</span>
-                <ArrowRight className="w-5 h-5" />
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Button 
+                  size="lg" 
+                  onClick={() => setMode('beta')}
+                  className="w-full sm:w-auto bg-accent-green hover:opacity-90 text-slate-900 font-bold px-8 h-14 rounded-xl text-base transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Garantir Minha Vaga no Beta</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
 
-              <Button 
-                size="lg"
-                variant="outline"
-                onClick={() => {
-                  document.getElementById('login-card')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="w-full sm:w-auto border-card-border hover:bg-slate-800/80 text-slate-200 font-bold px-8 h-14 rounded-xl text-base transition-all cursor-pointer"
-              >
-                Já tenho acesso
-              </Button>
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  onClick={() => {
+                    document.getElementById('login-card')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full sm:w-auto border-card-border hover:bg-slate-800/80 text-slate-200 font-bold px-8 h-14 rounded-xl text-base transition-all cursor-pointer"
+                >
+                  Já tenho acesso
+                </Button>
+              </div>
+
+              {/* CRO Guarantees & Friction Reducers */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 text-[11px] text-slate-400 font-medium pt-2">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-accent-green" />
+                  Inscrição rápida em 1 min
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-accent-green" />
+                  100% Gratuito na fase Beta
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-accent-green" />
+                  Sem necessidade de cartão
+                </span>
+              </div>
             </motion.div>
           </div>
 
@@ -377,25 +395,79 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 5. PARA QUEM É */}
+      {/* 5. PARA QUEM É (Pre-qualificação e Transparência) */}
       <section className="py-20 px-6 relative">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-accent-green bg-accent-green/10 px-4 py-1.5 rounded-full border border-accent-green/20">
-            Fase de Testes Beta
-          </span>
-          <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-4 mb-6">
-            Para quem é o Finanza
-          </h2>
-          <div className="bg-card-bg border border-card-border p-8 md:p-10 rounded-[2.5rem] shadow-xl text-slate-300 text-sm md:text-base leading-relaxed space-y-4 text-left">
-            <p>
-              Neste momento, o acesso ao Finanza está restrito à fase <strong>Beta fechada</strong>.
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-accent-green bg-accent-green/10 px-4 py-1.5 rounded-full border border-accent-green/20">
+              Fase de Testes Beta Fechada
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-4 mb-4">
+              O Finanza é para você?
+            </h2>
+            <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
+              Buscamos pessoas comprometidas em construir hábitos financeiros consistentes para crescer conosco.
             </p>
-            <p className="text-slate-400">
-              O grupo inicial é formado por pessoas genuinamente interessadas em desenvolver hábitos financeiros consistentes, dispostas a testar a ferramenta no seu dia a dia e contribuir com opiniões para o aprimoramento do sistema.
-            </p>
-            <p className="text-slate-200 font-medium pt-2 border-t border-card-border/60">
-              Se você busca clareza, organização e disciplina constante para gerenciar seu patrimônio, o Finanza foi feito para você.
-            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* É para você */}
+            <div className="bg-card-bg border border-accent-green/30 p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-card-border">
+                <div className="w-10 h-10 rounded-xl bg-accent-green/10 border border-accent-green/30 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-accent-green" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-100 text-lg">É para você se:</h3>
+                  <p className="text-[10px] text-accent-green font-bold uppercase tracking-wider">Perfil Recomendado</p>
+                </div>
+              </div>
+              <ul className="space-y-4 text-xs md:text-sm text-slate-300">
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-accent-green shrink-0 mt-0.5" />
+                  <span>Deseja criar a disciplina de acompanhar suas finanças diariamente em menos de 2 minutos.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-accent-green shrink-0 mt-0.5" />
+                  <span>Quer clareza absoluta sobre para onde vai cada centavo da sua receita.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-accent-green shrink-0 mt-0.5" />
+                  <span>Busca uma ferramenta sem poluição visual e desenhada para acelerar sua construção patrimonial.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-accent-green shrink-0 mt-0.5" />
+                  <span>Deseja testar ativamente a plataforma e nos ajudar com feedbacks reais.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* NÃO é para você */}
+            <div className="bg-card-bg border border-card-border/80 p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-card-border">
+                <div className="w-10 h-10 rounded-xl bg-accent-rose/10 border border-accent-rose/30 flex items-center justify-center">
+                  <X className="w-6 h-6 text-accent-rose" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-100 text-lg">Não é para você se:</h3>
+                  <p className="text-[10px] text-accent-rose font-bold uppercase tracking-wider">Fora do Escopo</p>
+                </div>
+              </div>
+              <ul className="space-y-4 text-xs md:text-sm text-slate-400">
+                <li className="flex items-start gap-3">
+                  <X className="w-4 h-4 text-accent-rose/70 shrink-0 mt-0.5" />
+                  <span>Procura promessas mágicas de enriquecimento rápido ou rendimentos automáticos.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <X className="w-4 h-4 text-accent-rose/70 shrink-0 mt-0.5" />
+                  <span>Espera um aplicativo que faça tudo por você sem nenhum acompanhamento pessoal.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <X className="w-4 h-4 text-accent-rose/70 shrink-0 mt-0.5" />
+                  <span>Deseja usar a plataforma sem nenhum compromisso com a própria clareza financeira.</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -405,41 +477,82 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-accent-green bg-accent-green/10 px-4 py-1.5 rounded-full border border-accent-green/20">
-              Passo a Passo
+              Processo Transparente
             </span>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mt-4 mb-4">
               Como funciona o acesso
             </h2>
             <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto">
-              Um processo simples e transparente para você ingressar na comunidade Beta.
+              Um processo simples e rápido para você ingressar na comunidade Beta.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
             <TimelineStep 
               number="1"
+              badge="< 1 min"
               title="Solicite acesso"
-              desc="Preencha o formulário em menos de 1 minuto."
+              desc="Preencha o formulário rápido com seu nome e e-mail."
             />
             <TimelineStep 
               number="2"
-              title="Cadastro aprovado"
-              desc="Acompanhamento próximo de cada novo perfil."
+              badge="Até 24h"
+              title="Análise do perfil"
+              desc="Acompanhamento próximo de cada novo participante."
             />
             <TimelineStep 
               number="3"
-              title="Receba por e-mail"
-              desc="Instruções de acesso liberadas via e-mail."
+              badge="Via E-mail"
+              title="Acesso liberado"
+              desc="Instruções e confirmação enviadas na sua caixa de entrada."
             />
             <TimelineStep 
               number="4"
+              badge="Imediato"
               title="Comece a utilizar"
-              desc="Inicie seus registros e acompanhe sua evolução."
+              desc="Inicie seus registros e veja a clareza se formar."
             />
             <TimelineStep 
               number="5"
-              title="Envie sugestões"
-              desc="Ajude a lapidar as próximas funcionalidades."
+              badge="Contínuo"
+              title="Evolução diária"
+              desc="Dê opiniões e ajude a lapidar as próximas funções."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 6.5. FAQ - DÚVIDAS FREQUENTES */}
+      <section className="py-20 px-6 relative border-t border-card-border/50 bg-slate-950/20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-accent-green bg-accent-green/10 px-4 py-1.5 rounded-full border border-accent-green/20">
+              Respostas Claras
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-4 mb-3">
+              Perguntas Frequentes
+            </h2>
+            <p className="text-slate-400 text-xs md:text-sm">
+              Tudo o que você precisa saber sobre a fase Beta do Finanza.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <FaqCard 
+              question="O Finanza é 100% gratuito durante a fase Beta?"
+              answer="Sim! Todos os usuários convidados na fase Beta têm acesso gratuito completo às funcionalidades do sistema."
+            />
+            <FaqCard 
+              question="Preciso cadastrar cartão de crédito para solicitar o acesso?"
+              answer="Não. Nenhuma informação bancária ou cartão de crédito é exigido na solicitação de acesso."
+            />
+            <FaqCard 
+              question="Como é garantida a segurança das minhas informações financeiras?"
+              answer="Utilizamos infraestrutura criptografada em nuvem do Google Firestore e Firebase Auth com rígida conformidade à LGPD. Seus dados são estritamente confidenciais e protegidos."
+            />
+            <FaqCard 
+              question="Quanto tempo leva para meu convite ser aprovado?"
+              answer="Como fazemos a liberação manual para acompanhar cada usuário de perto, o prazo médio de aprovação varia entre algumas horas e 24 horas."
             />
           </div>
         </div>
@@ -586,14 +699,43 @@ function FeatureCheck({ text }: { text: string }) {
   );
 }
 
-function TimelineStep({ number, title, desc }: { number: string; title: string; desc: string }) {
+function TimelineStep({ number, badge, title, desc }: { number: string; badge?: string; title: string; desc: string }) {
   return (
-    <div className="bg-card-bg border border-card-border p-6 rounded-2xl relative text-center flex flex-col items-center">
+    <div className="bg-card-bg border border-card-border p-6 rounded-2xl relative text-center flex flex-col items-center hover:border-accent-green/40 transition-colors">
+      {badge && (
+        <span className="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-wider text-accent-green bg-accent-green/10 border border-accent-green/20 px-2 py-0.5 rounded-full">
+          {badge}
+        </span>
+      )}
       <div className="w-8 h-8 rounded-full bg-accent-green/10 border border-accent-green/30 text-accent-green font-bold text-xs flex items-center justify-center mb-4">
         {number}
       </div>
       <h4 className="font-bold text-slate-100 text-sm mb-1">{title}</h4>
       <p className="text-slate-400 text-xs leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function FaqCard({ question, answer }: { question: string; answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div 
+      onClick={() => setIsOpen(!isOpen)} 
+      className="bg-card-bg border border-card-border rounded-2xl p-5 cursor-pointer hover:border-accent-green/40 transition-all"
+    >
+      <div className="flex items-center justify-between gap-4">
+        <h4 className="font-bold text-slate-100 text-sm md:text-base flex items-center gap-2">
+          <ChevronRight className={`w-4 h-4 text-accent-green transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+          {question}
+        </h4>
+        <span className="text-slate-500 text-xs font-mono">{isOpen ? '−' : '+'}</span>
+      </div>
+      {isOpen && (
+        <p className="mt-3 text-xs md:text-sm text-slate-400 leading-relaxed pl-6 border-l-2 border-accent-green/30">
+          {answer}
+        </p>
+      )}
     </div>
   );
 }

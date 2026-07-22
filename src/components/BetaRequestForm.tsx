@@ -132,16 +132,16 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
             Voltar para a página inicial
           </button>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] bg-accent-green/10 text-accent-green px-3 py-1 rounded-full border border-accent-green/20">
-            Acesso Beta Exclusivo
+            ⏱️ Inscrição em &lt; 60 Segundos
           </span>
         </div>
 
         <div className="text-center md:text-left mb-8">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-            Solicitar Acesso ao <span className="text-accent-green">Finanza Beta</span>
+            Garantir Vaga no <span className="text-accent-green">Finanza Beta</span>
           </h1>
           <p className="text-slate-400 text-sm leading-relaxed">
-            Preencha os dados abaixo para entrar na fila de convites prioritários e evoluir sua disciplina financeira.
+            Preencha seus dados abaixo para entrar na fila prioritária e acelerar sua clareza e disciplina financeira.
           </p>
         </div>
 
@@ -166,6 +166,9 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
               maxLength={200}
               className="bg-slate-950 border-card-border focus:border-accent-green/50 rounded-xl h-12 text-sm text-slate-100"
             />
+            <p className="text-[11px] text-slate-500">
+              Como gostaria de ser chamado(a) na plataforma.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -183,7 +186,7 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
               className="bg-slate-950 border-card-border focus:border-accent-green/50 rounded-xl h-12 text-sm text-slate-100"
             />
             <p className="text-[11px] text-slate-500">
-              Este e-mail será utilizado para liberar o seu acesso ao sistema.
+              Utilizado exclusivamente para avisar sobre a aprovação e liberar seu acesso.
             </p>
           </div>
 
@@ -201,6 +204,9 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
               maxLength={50}
               className="bg-slate-950 border-card-border focus:border-accent-green/50 rounded-xl h-12 text-sm text-slate-100"
             />
+            <p className="text-[11px] text-slate-500">
+              Opcional. Utilizado caso necessite de suporte direto ou aviso de aprovação via WhatsApp.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -209,8 +215,8 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
             </Label>
             <textarea 
               id="motivation"
-              rows={4}
-              placeholder="Conte resumidamente sobre seus desafios atuais na gestão financeira e o que mais você busca no Finanza..."
+              rows={3}
+              placeholder="Conte resumidamente seu principal desafio ou objetivo financeiro atual..."
               value={motivation}
               onChange={(e) => setMotivation(e.target.value)}
               required
@@ -223,7 +229,7 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
             <Button 
               type="submit"
               disabled={loading}
-              className="w-full bg-accent-green hover:opacity-90 text-slate-900 font-bold h-14 rounded-xl text-base transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.15)] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full bg-accent-green hover:opacity-90 text-slate-900 font-bold h-14 rounded-xl text-base transition-all active:scale-95 shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -233,7 +239,7 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  <span>Solicitar Acesso</span>
+                  <span>Garantir Minha Vaga no Beta</span>
                 </>
               )}
             </Button>
