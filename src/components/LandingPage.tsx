@@ -27,19 +27,21 @@ import {
   Shield,
   Laptop
 } from 'lucide-react';
-import { GoogleSignIn, EmailSignIn } from '@/lib/auth';
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 import { TermsOfUseModal } from './TermsOfUseModal';
 import { AboutModal } from './AboutModal';
 import { BetaRequestForm } from './BetaRequestForm';
+import { HeroPlatformPreview } from './HeroPlatformPreview';
+import { LoginModal } from './LoginModal';
 
-type LandingPageMode = 'main' | 'beta' | 'login';
+type LandingPageMode = 'main' | 'beta';
 
 export function LandingPage() {
   const [mode, setMode] = useState<LandingPageMode>('main');
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   // If in beta application form mode
   if (mode === 'beta') {
@@ -67,12 +69,7 @@ export function LandingPage() {
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
-              onClick={() => {
-                setMode('main');
-                setTimeout(() => {
-                  document.getElementById('login-card')?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-              }} 
+              onClick={() => setIsLoginOpen(true)} 
               className="text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl h-10 px-4"
             >
               Já tenho acesso
@@ -87,7 +84,7 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION - Single conversion focus on Beta */}
       <section className="relative pt-12 pb-20 px-6 md:pt-20 lg:pt-24">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           <div className="lg:col-span-7 text-center lg:text-left">
@@ -138,9 +135,7 @@ export function LandingPage() {
                 <Button 
                   size="lg"
                   variant="outline"
-                  onClick={() => {
-                    document.getElementById('login-card')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onClick={() => setIsLoginOpen(true)}
                   className="w-full sm:w-auto border-card-border hover:bg-slate-800/80 text-slate-200 font-bold px-8 h-14 rounded-xl text-base transition-all cursor-pointer"
                 >
                   Já tenho acesso
@@ -165,51 +160,14 @@ export function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Login Card Integration */}
+          {/* Interactive Dynamic Platform Preview (CRO Optimization #1) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
-            className="lg:col-span-5 w-full max-w-md mx-auto bg-card-bg border border-card-border p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative"
-            id="login-card"
+            className="lg:col-span-5 w-full max-w-lg mx-auto"
           >
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-accent-green/10 blur-3xl rounded-full pointer-events-none" />
-            
-            <div className="text-center mb-8">
-              <span className="text-[10px] font-bold text-accent-green uppercase tracking-[0.2em] bg-accent-green/10 px-3 py-1 rounded-full border border-accent-green/20 mb-3 inline-block">
-                Área do Usuário
-              </span>
-              <h2 className="text-2xl font-bold mb-1">Acessar o Finanza</h2>
-              <p className="text-slate-400 text-xs font-medium">Digite seu e-mail ou utilize sua conta Google</p>
-            </div>
-
-            <div className="space-y-6">
-              <EmailSignIn />
-              
-              <div className="relative flex items-center gap-4">
-                <div className="h-[1px] flex-1 bg-card-border" />
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ou continue com</span>
-                <div className="h-[1px] flex-1 bg-card-border" />
-              </div>
-
-              <GoogleSignIn />
-
-              <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium bg-slate-900/40 py-3 px-4 rounded-xl border border-card-border/50">
-                <Lock className="w-3.5 h-3.5 text-accent-green shrink-0" />
-                <span>Ambiente criptografado SSL e LGPD ativa</span>
-              </div>
-            </div>
-
-            <p className="mt-6 text-center text-[10px] text-slate-500 font-medium leading-relaxed">
-              Ao continuar, você concorda com nossos{' '}
-              <button onClick={() => setIsTermsOpen(true)} className="text-slate-400 hover:underline font-bold">
-                termos de uso
-              </button>{' '}
-              e com nossa{' '}
-              <button onClick={() => setIsPrivacyOpen(true)} className="text-accent-green hover:underline font-bold">
-                política de privacidade (LGPD)
-              </button>.
-            </p>
+            <HeroPlatformPreview />
           </motion.div>
         </div>
       </section>
@@ -601,6 +559,9 @@ export function LandingPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-semibold">
+              <button onClick={() => setIsLoginOpen(true)} className="text-accent-green hover:underline font-bold transition-colors">
+                Área de Membros (Login)
+              </button>
               <button onClick={() => setIsAboutOpen(true)} className="hover:text-accent-green transition-colors">
                 Sobre
               </button>
@@ -669,6 +630,12 @@ export function LandingPage() {
       </footer>
 
       {/* Modals */}
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+        onOpenPrivacy={() => { setIsLoginOpen(false); setIsPrivacyOpen(true); }}
+        onOpenTerms={() => { setIsLoginOpen(false); setIsTermsOpen(true); }}
+      />
       <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
       <TermsOfUseModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
