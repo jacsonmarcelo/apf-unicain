@@ -16,6 +16,8 @@ import {
   MessageSquare
 } from 'lucide-react';
 
+import { sendTelegramNotification } from '@/lib/telegram';
+
 interface BetaRequestFormProps {
   onBackToHome: () => void;
 }
@@ -51,6 +53,15 @@ export function BetaRequestForm({ onBackToHome }: BetaRequestFormProps) {
       }
 
       await addDoc(collection(db, 'beta_requests'), payload);
+
+      // Dispara notificação no Telegram (se configurado) sem travar a UI
+      sendTelegramNotification({
+        name: payload.name,
+        email: payload.email,
+        phone: payload.whatsapp,
+        motivation: payload.motivation,
+      }).catch(err => console.warn('Falha ao enviar notificação no Telegram:', err));
+
       setSubmitted(true);
     } catch (err: any) {
       console.error('Erro ao enviar solicitação Beta:', err);
