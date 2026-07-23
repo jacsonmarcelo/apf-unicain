@@ -204,6 +204,111 @@ async function startServer() {
     }
   });
 
+  // 3. Send Beta Approval Welcome Email
+  app.post("/api/admin/send-approval-email", async (req, res) => {
+    const { email, name, appUrl } = req.body;
+    if (!email) return res.status(400).json({ error: "E-mail é obrigatório" });
+
+    const targetEmail = email.toLowerCase().trim();
+    const userName = name || "Membro Beta";
+    const targetUrl = appUrl || "https://finanza.unicain.com.br";
+
+    try {
+      if (process.env.RESEND_API_KEY) {
+        let fromEmail = (process.env.RESEND_FROM_EMAIL || "").trim();
+        fromEmail = fromEmail.replace(/^['"]|['"]$/g, "").trim();
+        
+        if (!fromEmail || fromEmail.includes("resend.dev")) {
+          fromEmail = "finanza@unicain.com.br";
+        }
+
+        const { data, error } = await resend.emails.send({
+          from: `Finanza <${fromEmail}>`,
+          to: targetEmail,
+          subject: "🎉 Seu acesso ao Finanza Beta foi aprovado!",
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #090d16; color: #f1f5f9; margin: 0; padding: 0; }
+                .container { max-width: 580px; margin: 30px auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+                .header { background: linear-gradient(135deg, #090d16 0%, #0f172a 100%); padding: 32px 28px 24px; text-align: center; border-bottom: 1px solid #1e293b; }
+                .logo { font-size: 22px; font-weight: 800; color: #10b981; letter-spacing: -0.5px; text-decoration: none; }
+                .badge { display: inline-block; background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: bold; text-transform: uppercase; padding: 4px 12px; border-radius: 9999px; margin-top: 12px; letter-spacing: 1px; }
+                .content { padding: 32px 28px; line-height: 1.6; }
+                .h1 { font-size: 24px; font-weight: bold; color: #ffffff; margin-top: 0; margin-bottom: 16px; text-align: center; }
+                .p { color: #cbd5e1; font-size: 15px; margin-bottom: 16px; }
+                .highlight-box { background-color: #1e293b; border-left: 4px solid #10b981; padding: 20px; border-radius: 12px; margin: 24px 0; }
+                .step { margin-bottom: 12px; font-size: 14px; color: #e2e8f0; }
+                .step-num { font-weight: bold; color: #10b981; margin-right: 8px; }
+                .cta-container { text-align: center; margin: 32px 0 20px; }
+                .button { display: inline-block; background-color: #10b981; color: #090d16; font-weight: 800; font-size: 15px; padding: 16px 32px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); }
+                .footer { background-color: #090d16; padding: 24px 28px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #1e293b; }
+                .footer a { color: #10b981; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <div class="logo">FINANZA</div>
+                  <div class="badge">Sistema de Evolução Financeira</div>
+                </div>
+                <div class="content">
+                  <div class="h1">Seu acesso foi liberado! 🎉</div>
+                  <p class="p">Olá, <strong>${userName}</strong>!</p>
+                  <p class="p">Temos o prazer de informar que sua solicitação para participar da fase <strong>Beta Exclusiva do Finanza</strong> foi aprovada com sucesso.</p>
+                  <p class="p">Sua conta já está cadastrada e liberada no nosso sistema com o e-mail: <strong style="color: #10b981;">${targetEmail}</strong>.</p>
+                  
+                  <div class="highlight-box">
+                    <div style="font-weight: bold; color: #ffffff; margin-bottom: 12px; font-size: 15px;">🚀 Como acessar sua conta:</div>
+                    <div class="step"><span class="step-num">1.</span> Acesse a plataforma oficial: <a href="${targetUrl}" style="color:#10b981; text-decoration:underline;">${targetUrl}</a></div>
+                    <div class="step"><span class="step-num">2.</span> Clique em <strong>"Já tenho acesso"</strong> no topo da página.</div>
+                    <div class="step"><span class="step-num">3.</span> Digite seu e-mail <strong>${targetEmail}</strong> para receber seu código de verificação ou entre direto com sua conta Google.</div>
+                    <div class="step"><span class="step-num">4.</span> Inicie seus lançamentos e acompanhe sua evolução patrimonial em tempo real.</div>
+                  </div>
+
+                  <div class="cta-container">
+                    <a href="${targetUrl}" class="button">Acessar o Finanza Agora →</a>
+                  </div>
+                </div>
+                <div class="footer">
+                  <p style="margin:0 0 8px;">Dúvidas ou sugestões? Responda diretamente a este e-mail.</p>
+                  <p style="margin:0;">Finanza • <a href="${targetUrl}">${targetUrl}</a></p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+        });
+
+        if (error) {
+          console.error("Erro ao enviar e-mail via Resend:", error);
+          return res.json({
+            success: true,
+            warning: `Acesso liberado! Aviso de envio de e-mail: ${error.message || 'Restrição do provedor de e-mail.'}`
+          });
+        }
+
+        return res.json({
+          success: true,
+          message: "E-mail de aprovação enviado com sucesso!",
+          data
+        });
+      } else {
+        console.log(`[DEV MODE] E-mail de aprovação enviado virtualmente para ${targetEmail} (${userName}).`);
+        return res.json({
+          success: true,
+          message: "Acesso aprovado! (Dev mode: e-mail registrado nos logs do servidor)."
+        });
+      }
+    } catch (err: any) {
+      console.error("Exceção ao enviar e-mail de aprovação:", err);
+      return res.status(500).json({ error: "Falha ao enviar e-mail", details: err.message });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

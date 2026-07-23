@@ -67,6 +67,7 @@ export function AdminBetaRequests() {
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [telegramStatus, setTelegramStatus] = useState<{ success?: boolean; message?: string } | null>(null);
   const [newRequestBanner, setNewRequestBanner] = useState<string | null>(null);
+  const [approvalBanner, setApprovalBanner] = useState<{ text: string; type: 'success' | 'warning' } | null>(null);
 
   const isInitialLoad = useRef(true);
 
@@ -136,6 +137,7 @@ export function AdminBetaRequests() {
 
   const handleApprove = async (reqItem: BetaRequest) => {
     setProcessingId(reqItem.id);
+    setApprovalBanner(null);
     try {
       const targetEmail = reqItem.email.toLowerCase().trim();
       const userRef = doc(db, 'users', targetEmail);
@@ -156,10 +158,42 @@ export function AdminBetaRequests() {
         });
       }
 
-      // Update beta request status
+      // Update beta request status in Firestore
       await updateDoc(doc(db, 'beta_requests', reqItem.id), {
         status: 'approved'
       });
+
+      // Automatically send approval welcome email with instructions to https://finanza.unicain.com.br
+      try {
+        const response = await fetch('/api/admin/send-approval-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: targetEmail,
+            name: reqItem.name,
+            appUrl: 'https://finanza.unicain.com.br'
+          })
+        });
+
+        const resData = await response.json();
+        if (resData.warning) {
+          setApprovalBanner({
+            text: `🎉 Acesso liberado para ${targetEmail}! (${resData.warning})`,
+            type: 'warning'
+          });
+        } else {
+          setApprovalBanner({
+            text: `🎉 Acesso aprovado e e-mail de boas-vindas enviado automaticamente com sucesso para ${targetEmail}!`,
+            type: 'success'
+          });
+        }
+      } catch (emailErr) {
+        console.warn('Falha na requisição de e-mail de boas-vindas:', emailErr);
+        setApprovalBanner({
+          text: `🎉 Acesso de ${targetEmail} liberado na plataforma! (Não foi possível conectar ao servidor de e-mail).`,
+          type: 'warning'
+        });
+      }
     } catch (err) {
       console.error('Erro ao aprovar solicitação Beta:', err);
     } finally {
@@ -279,6 +313,26 @@ export function AdminBetaRequests() {
               className="text-xs text-accent-green hover:underline cursor-pointer"
             >
               Fechar
+            </button>
+          </div>
+        )}
+
+        {/* Approval Email Status Banner */}
+        {approvalBanner && (
+          <div className={`mb-6 p-4 rounded-xl text-sm font-bold flex items-center justify-between border ${
+            approvalBanner.type === 'success'
+              ? 'bg-accent-green/10 text-accent-green border-accent-green/30'
+              : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              <Mail className="w-5 h-5 shrink-0" />
+              <span>{approvalBanner.text}</span>
+            </div>
+            <button 
+              onClick={() => setApprovalBanner(null)} 
+              className="text-xs hover:underline cursor-pointer opacity-80 hover:opacity-100"
+            >
+              ✕
             </button>
           </div>
         )}
